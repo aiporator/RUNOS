@@ -390,7 +390,7 @@ CREATE TABLE activity_sources (
   club_id              text NOT NULL REFERENCES organizations(id),
   activity_id          text NOT NULL,                          -- FK to activities.id (app-enforced across partitions)
   member_id            text NOT NULL REFERENCES members(id),
-  connection_id        text NOT NULL REFERENCES integration_connections(id),
+  connection_id        text NOT NULL,   -- FK to integration_connections added in §10 (defined later)
   provider             text NOT NULL CHECK (provider IN
                          ('strava','garmin','coros','polar','suunto','apple_health',
                           'google_health_connect','fitbit','trainingpeaks','zwift','manual')),
@@ -1431,6 +1431,11 @@ CREATE TABLE integration_connections (
 );
 CREATE INDEX integration_connections_member_idx ON integration_connections (club_id, member_id, provider);
 CREATE INDEX integration_connections_provider_ext_idx ON integration_connections (provider, external_account_id);
+
+-- Deferred FK from §3 (activity_sources predates this table in domain ordering)
+ALTER TABLE activity_sources
+  ADD CONSTRAINT activity_sources_connection_fk
+  FOREIGN KEY (connection_id) REFERENCES integration_connections(id);
 
 CREATE TABLE sync_cursors (
   connection_id text NOT NULL REFERENCES integration_connections(id) ON DELETE CASCADE,
