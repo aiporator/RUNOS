@@ -55,3 +55,226 @@ body {
     animation: none;
   }
 }
+
+/* ===================================================================== */
+/* Marketing landing page — appended utilities (do not edit rules above) */
+/* ===================================================================== */
+
+@keyframes mk-rise-up {
+  to { transform: translateY(0); }
+}
+@keyframes mk-ken-burns {
+  from { transform: scale(1) translateY(0); }
+  to { transform: scale(1.09) translateY(-2%); }
+}
+@keyframes mk-marquee {
+  to { transform: translateX(-50%); }
+}
+@keyframes mk-blink {
+  50% { opacity: 0; }
+}
+@keyframes mk-panel-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes mk-typing-dot {
+  0%, 60%, 100% { transform: none; opacity: 0.4; }
+  30% { transform: translateY(-5px); opacity: 1; }
+}
+@keyframes mk-scroll-line {
+  to { top: 110%; }
+}
+
+/* reveal-on-scroll (IntersectionObserver adds .in) */
+.mk-rv {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.mk-rv.in {
+  opacity: 1;
+  transform: none;
+}
+.mk-rv-d1 { transition-delay: 0.08s; }
+.mk-rv-d2 { transition-delay: 0.16s; }
+.mk-rv-d3 { transition-delay: 0.24s; }
+.mk-rv-d4 { transition-delay: 0.32s; }
+
+/* hero staggered word reveal */
+.mk-word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+.mk-word > span {
+  display: inline-block;
+  transform: translateY(110%);
+  animation: mk-rise-up 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* hero fade-up entrances (delay set inline) */
+.mk-fade-up {
+  opacity: 0;
+  animation: fade-up 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.mk-kenburns {
+  animation: mk-ken-burns 22s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.mk-marquee {
+  display: flex;
+  width: max-content;
+  animation: mk-marquee 34s linear infinite;
+}
+.mk-marquee-band:hover .mk-marquee {
+  animation-play-state: paused;
+}
+
+.mk-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: #cdfb50;
+  vertical-align: text-bottom;
+  margin-left: 2px;
+  animation: mk-blink 0.8s steps(1) infinite;
+}
+
+.mk-panel-in {
+  animation: mk-panel-in 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mk-typing {
+  display: inline-flex;
+  gap: 5px;
+  padding: 6px 2px;
+}
+.mk-typing i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(242, 243, 234, 0.62);
+  animation: mk-typing-dot 1.2s infinite;
+}
+.mk-typing i:nth-child(2) { animation-delay: 0.15s; }
+.mk-typing i:nth-child(3) { animation-delay: 0.3s; }
+
+.mk-scroll-line {
+  width: 1.5px;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+.mk-scroll-line::after {
+  content: '';
+  position: absolute;
+  top: -40%;
+  left: 0;
+  width: 100%;
+  height: 40%;
+  background: #cdfb50;
+  animation: mk-scroll-line 1.9s ease-in-out infinite;
+}
+
+/* nav hover underline */
+.mk-nav-link {
+  position: relative;
+  transition: color 0.25s;
+}
+.mk-nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -5px;
+  width: 100%;
+  height: 1.5px;
+  background: #cdfb50;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.mk-nav-link:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* button sheen sweep */
+.mk-btn {
+  position: relative;
+  overflow: hidden;
+}
+.mk-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -80%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.6s;
+}
+.mk-btn:hover::before {
+  left: 130%;
+}
+
+/* pricing feature checkmark */
+.mk-check {
+  flex: none;
+  width: 17px;
+  height: 17px;
+  margin-top: 3px;
+  background: #cdfb50;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M6.5 11.2 3.3 8l-1 1 4.2 4.2 7.2-7.2-1-1z'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M6.5 11.2 3.3 8l-1 1 4.2 4.2 7.2-7.2-1-1z'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+/* FAQ answer height animation */
+.mk-faq-a {
+  overflow: hidden;
+  transition: max-height 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* footer giant outlined word */
+.mk-big-word {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(242, 243, 234, 0.14);
+  user-select: none;
+  transition: color 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.mk-big-word.in {
+  color: rgba(205, 251, 80, 0.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mk-rv,
+  .mk-fade-up {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    animation: none;
+  }
+  .mk-word > span {
+    transform: translateY(0);
+    animation: none;
+  }
+  .mk-kenburns,
+  .mk-marquee,
+  .mk-caret,
+  .mk-panel-in,
+  .mk-typing i,
+  .mk-scroll-line::after {
+    animation: none;
+  }
+  .mk-faq-a,
+  .mk-nav-link::after,
+  .mk-big-word,
+  .mk-btn::before {
+    transition: none;
+  }
+}

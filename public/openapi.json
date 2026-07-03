@@ -1,0 +1,1149 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "RunOS API",
+    "version": "1.0.0-demo",
+    "description": "RunOS public REST API v1 (demo fidelity). In-memory store seeded with the Harbor City Runners demo club. Auth: Bearer token with the `ros_` prefix (demo token: `ros_demo`). Errors use a Stripe-style envelope. Collections use cursor pagination (`?limit`, `?cursor`). Member reads are consent-filtered: activity aggregates require the member's `activity.summary` grant; health/medical fields never appear.",
+    "contact": { "name": "RunOS", "url": "https://docs.runos.com" }
+  },
+  "servers": [{ "url": "/api/v1", "description": "Demo (same origin)" }],
+  "security": [{ "bearerAuth": [] }],
+  "tags": [
+    { "name": "System" },
+    { "name": "Members" },
+    { "name": "Events" },
+    { "name": "Money" },
+    { "name": "Partners" },
+    { "name": "Engage" },
+    { "name": "Analytics" },
+    { "name": "Webhooks" }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["System"],
+        "summary": "Health check (no auth)",
+        "operationId": "getHealth",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Service is up",
+            "content": {
+              "application/json": {
+                "example": { "status": "ok", "version": "1.0.0-demo" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/members": {
+      "get": {
+        "tags": ["Members"],
+        "summary": "List members",
+        "operationId": "listMembers",
+        "parameters": [
+          { "name": "status", "in": "query", "schema": { "$ref": "#/components/schemas/MemberStatus" } },
+          { "name": "q", "in": "query", "description": "Search name or email", "schema": { "type": "string" } },
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/cursor" }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/MemberList" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "post": {
+        "tags": ["Members"],
+        "summary": "Create a member",
+        "operationId": "createMember",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string", "format": "email" },
+                  "tier": { "type": "string", "enum": ["free", "monthly", "annual"], "default": "free" },
+                  "city": { "type": "string" },
+                  "tags": { "type": "array", "items": { "type": "string" } },
+                  "consents": {
+                    "type": "array",
+                    "items": { "$ref": "#/components/schemas/ConsentScope" },
+                    "default": ["profile.basic"]
+                  }
+                }
+              },
+              "example": { "name": "Leo Martins", "email": "leo@example.com", "tier": "monthly" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Member created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/Member" } }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/members/{id}": {
+      "parameters": [{ "$ref": "#/components/parameters/id" }],
+      "get": {
+        "tags": ["Members"],
+        "summary": "Get a member (consent-filtered)",
+        "description": "Without the member's `activity.summary` consent grant, `weeklyKm` and `prs` are omitted and `consent_required` lists the missing scope.",
+        "operationId": "getMember",
+        "responses": {
+          "200": {
+            "description": "Member",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/Member" } } }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "patch": {
+        "tags": ["Members"],
+        "summary": "Update a member (status, tags, tier)",
+        "operationId": "updateMember",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "minProperties": 1,
+                "properties": {
+                  "status": { "$ref": "#/components/schemas/MemberStatus" },
+                  "tags": { "type": "array", "items": { "type": "string" } },
+                  "tier": { "type": "string", "enum": ["free", "monthly", "annual"] }
+                }
+              },
+              "example": { "status": "active", "tags": ["streak-holder"] }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated member",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/Member" } } }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/events": {
+      "get": {
+        "tags": ["Events"],
+        "summary": "List events",
+        "operationId": "listEvents",
+        "parameters": [
+          { "name": "status", "in": "query", "schema": { "$ref": "#/components/schemas/EventStatus" } },
+          { "name": "type", "in": "query", "schema": { "$ref": "#/components/schemas/EventType" } },
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/cursor" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Events page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Event" } },
+                    "meta": { "$ref": "#/components/schemas/PageMeta" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "post": {
+        "tags": ["Events"],
+        "summary": "Create an event (starts as draft)",
+        "operationId": "createEvent",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "type", "date"],
+                "properties": {
+                  "title": { "type": "string" },
+                  "type": { "$ref": "#/components/schemas/EventType" },
+                  "date": { "type": "string", "format": "date-time" },
+                  "location": { "type": "string" },
+                  "routeName": { "type": "string" },
+                  "distanceKm": { "type": "number", "minimum": 0 },
+                  "capacity": { "type": "integer", "minimum": 0, "default": 50 },
+                  "price": { "type": "number", "minimum": 0, "default": 0 },
+                  "description": { "type": "string" }
+                }
+              },
+              "example": {
+                "title": "Sunset Tempo — River Path",
+                "type": "tempo",
+                "date": "2026-07-15T18:00:00Z",
+                "capacity": 40
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Event created",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/Event" } } }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/events/{id}": {
+      "parameters": [{ "$ref": "#/components/parameters/id" }],
+      "get": {
+        "tags": ["Events"],
+        "summary": "Get an event",
+        "operationId": "getEvent",
+        "responses": {
+          "200": {
+            "description": "Event",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/Event" } } }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "patch": {
+        "tags": ["Events"],
+        "summary": "Update an event",
+        "operationId": "updateEvent",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "minProperties": 1,
+                "properties": {
+                  "title": { "type": "string" },
+                  "status": { "$ref": "#/components/schemas/EventStatus" },
+                  "date": { "type": "string", "format": "date-time" },
+                  "location": { "type": "string" },
+                  "routeName": { "type": "string" },
+                  "distanceKm": { "type": "number", "minimum": 0 },
+                  "capacity": { "type": "integer", "minimum": 0 },
+                  "price": { "type": "number", "minimum": 0 },
+                  "description": { "type": "string" },
+                  "weather": { "type": "string" }
+                }
+              },
+              "example": { "status": "published" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated event",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/Event" } } }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/events/{id}/registrations": {
+      "parameters": [{ "$ref": "#/components/parameters/id" }],
+      "get": {
+        "tags": ["Events"],
+        "summary": "List registrations for an event",
+        "operationId": "listRegistrations",
+        "parameters": [
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/cursor" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registrations page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Registration" } },
+                    "meta": { "$ref": "#/components/schemas/PageMeta" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "post": {
+        "tags": ["Events"],
+        "summary": "Register a member (capacity-aware)",
+        "description": "Full events return 409 `capacity_exceeded` and the member is added to the waitlist (position given in the message).",
+        "operationId": "createRegistration",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["member_id"],
+                "properties": { "member_id": { "type": "string" } }
+              },
+              "example": { "member_id": "mem_045" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Registered",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "object": "registration",
+                    "id": "reg_041",
+                    "eventId": "evt_002",
+                    "memberId": "mem_045",
+                    "registeredAt": "2026-07-03T09:20:11.000Z",
+                    "checkedInAt": null,
+                    "waiverSigned": false,
+                    "event": { "id": "evt_002", "registered": 32, "capacity": 40 }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": {
+            "description": "Full (waitlisted) or already registered",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "error": {
+                    "type": "conflict_error",
+                    "code": "capacity_exceeded",
+                    "message": "Event evt_003 is full (capacity 120). Member added to waitlist at position 7.",
+                    "request_id": "req_000042",
+                    "doc_url": "https://docs.runos.com/errors#capacity_exceeded"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/{id}/checkin": {
+      "parameters": [{ "$ref": "#/components/parameters/id" }],
+      "post": {
+        "tags": ["Events"],
+        "summary": "Check a member in (idempotent)",
+        "description": "First call marks the registration checked in and increments the event counter. Repeat calls return `already_checked_in: true` with no side effects.",
+        "operationId": "checkIn",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["member_id"],
+                "properties": { "member_id": { "type": "string" } }
+              },
+              "example": { "member_id": "mem_001" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Check-in state",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "checked_in": true,
+                    "already_checked_in": false,
+                    "first_time": false,
+                    "registration_id": "reg_001",
+                    "checked_in_at": "2026-07-03T07:01:22.000Z",
+                    "event_checked_in": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": {
+            "description": "Member not registered for this event",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "error": {
+                    "type": "conflict_error",
+                    "code": "member_not_registered",
+                    "message": "Member mem_048 is not registered for event evt_001.",
+                    "request_id": "req_000043",
+                    "doc_url": "https://docs.runos.com/errors#member_not_registered"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments": {
+      "get": {
+        "tags": ["Money"],
+        "summary": "List payments (newest first)",
+        "operationId": "listPayments",
+        "parameters": [
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["succeeded", "pending", "failed", "refunded"] } },
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/cursor" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payments page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Payment" } },
+                    "meta": { "$ref": "#/components/schemas/PageMeta" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "post": {
+        "tags": ["Money"],
+        "summary": "Record a payment (computes 0.5% platform fee)",
+        "operationId": "createPayment",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["member_id", "kind", "description", "amount"],
+                "properties": {
+                  "member_id": { "type": "string" },
+                  "kind": { "type": "string", "enum": ["membership", "ticket", "merch", "marketplace"] },
+                  "description": { "type": "string" },
+                  "amount": { "type": "number", "exclusiveMinimum": 0 }
+                }
+              },
+              "example": { "member_id": "mem_003", "kind": "ticket", "description": "10K Time Trial ticket", "amount": 8 }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Payment recorded",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "id": "pay_043",
+                    "memberId": "mem_003",
+                    "kind": "ticket",
+                    "description": "10K Time Trial ticket",
+                    "amount": 8,
+                    "fee": 0.04,
+                    "status": "succeeded",
+                    "date": "2026-07-03T10:00:00.000Z"
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/sponsors": {
+      "get": {
+        "tags": ["Partners"],
+        "summary": "List sponsors (pipeline)",
+        "operationId": "listSponsors",
+        "parameters": [
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/cursor" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sponsors page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Sponsor" } },
+                    "meta": { "$ref": "#/components/schemas/PageMeta" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/sponsors/{id}": {
+      "parameters": [{ "$ref": "#/components/parameters/id" }],
+      "patch": {
+        "tags": ["Partners"],
+        "summary": "Move a sponsor to another pipeline stage",
+        "operationId": "updateSponsorStage",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["stage"],
+                "properties": {
+                  "stage": { "type": "string", "enum": ["lead", "contacted", "proposal", "negotiation", "active", "renewal"] },
+                  "next_step": { "type": "string" }
+                }
+              },
+              "example": { "stage": "negotiation", "next_step": "Review counter-proposal" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated sponsor",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/Sponsor" } } }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/perks": {
+      "get": {
+        "tags": ["Partners"],
+        "summary": "List perks (benefits passport)",
+        "operationId": "listPerks",
+        "parameters": [
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/cursor" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Perks page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Perk" } },
+                    "meta": { "$ref": "#/components/schemas/PageMeta" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/perks/{id}/redeem": {
+      "parameters": [{ "$ref": "#/components/parameters/id" }],
+      "post": {
+        "tags": ["Partners"],
+        "summary": "Redeem a perk for a member",
+        "description": "Perks are a member benefit — no `marketing.brands` consent required. Monthly limits enforced with 409 `limit_reached`; inactive perks return 409 `perk_inactive`.",
+        "operationId": "redeemPerk",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["member_id"],
+                "properties": { "member_id": { "type": "string" } }
+              },
+              "example": { "member_id": "mem_012" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Redemption issued",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "object": "perk_redemption",
+                    "id": "prx_001",
+                    "perk_id": "perk_1",
+                    "member_id": "mem_012",
+                    "status": "redeemed",
+                    "code_issued": "RUNOS-P1-0001",
+                    "redeemed_at": "2026-07-03T10:02:44.000Z",
+                    "redemptions_this_month": 215,
+                    "monthly_limit": null
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": {
+            "description": "Monthly limit reached or perk inactive",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "error": {
+                    "type": "conflict_error",
+                    "code": "limit_reached",
+                    "message": "Perk perk_3 has reached its monthly redemption limit of 20.",
+                    "request_id": "req_000044",
+                    "doc_url": "https://docs.runos.com/errors#limit_reached"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/challenges": {
+      "get": {
+        "tags": ["Engage"],
+        "summary": "List challenges with leaderboards",
+        "operationId": "listChallenges",
+        "parameters": [
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/cursor" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Challenges page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Challenge" } },
+                    "meta": { "$ref": "#/components/schemas/PageMeta" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/journeys": {
+      "get": {
+        "tags": ["Engage"],
+        "summary": "List automation journeys",
+        "operationId": "listJourneys",
+        "parameters": [
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/cursor" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Journeys page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Journey" } },
+                    "meta": { "$ref": "#/components/schemas/PageMeta" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Analytics read model (WACM series, MRR, revenue, counts)",
+        "operationId": "getMetrics",
+        "responses": {
+          "200": {
+            "description": "Metrics snapshot",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/Metrics" } } },
+                "example": {
+                  "data": {
+                    "wacm": [{ "week": "Now", "wacm": 41, "attendance": 63, "newMembers": 3, "revenue": 923, "churned": 0 }],
+                    "mrr": 442,
+                    "revenueThisMonth": 1730,
+                    "counts": { "members": 48, "activeMembers": 30, "atRiskMembers": 8, "newMembers": 4, "events": 7, "upcomingEvents": 4, "registrations": 40, "checkedInTotal": 122, "payments": 42, "sponsors": 7, "perkRedemptions": 451, "challenges": 3, "journeys": 7 },
+                    "sponsorPipelineValue": 35500,
+                    "activeSponsorValue": 11400
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/audit": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "Audit log (most recent first)",
+        "operationId": "listAudit",
+        "parameters": [
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/cursor" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit entries page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/AuditEntry" } },
+                    "meta": { "$ref": "#/components/schemas/PageMeta" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/webhooks/strava": {
+      "get": {
+        "tags": ["Webhooks"],
+        "summary": "Strava subscription verification handshake (no auth)",
+        "operationId": "stravaVerify",
+        "security": [],
+        "parameters": [
+          { "name": "hub.challenge", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "hub.mode", "in": "query", "schema": { "type": "string" } },
+          { "name": "hub.verify_token", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Challenge echoed",
+            "content": { "application/json": { "example": { "hub.challenge": "15f7d1a91c1f40f8a748fd134752feb3" } } }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" }
+        }
+      },
+      "post": {
+        "tags": ["Webhooks"],
+        "summary": "Strava event receiver (no auth; fast-ack)",
+        "operationId": "stravaEvent",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["object_type", "aspect_type", "owner_id"],
+                "properties": {
+                  "object_type": { "type": "string", "enum": ["activity", "athlete"] },
+                  "aspect_type": { "type": "string", "enum": ["create", "update", "delete"] },
+                  "owner_id": { "type": ["integer", "string"] },
+                  "object_id": { "type": ["integer", "string"] }
+                }
+              },
+              "example": { "object_type": "activity", "aspect_type": "create", "owner_id": 134815, "object_id": 12345678987654321 }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Acknowledged",
+            "content": { "application/json": { "example": { "received": true } } }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "ros_ prefixed API key",
+        "description": "Any token starting with `ros_` is accepted in the demo (use `ros_demo`)."
+      }
+    },
+    "parameters": {
+      "id": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "string" },
+        "example": "mem_001"
+      },
+      "limit": {
+        "name": "limit",
+        "in": "query",
+        "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 }
+      },
+      "cursor": {
+        "name": "cursor",
+        "in": "query",
+        "description": "Opaque cursor from a previous response's meta.next_cursor",
+        "schema": { "type": "string" }
+      }
+    },
+    "responses": {
+      "MemberList": {
+        "description": "Members page",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": { "type": "array", "items": { "$ref": "#/components/schemas/Member" } },
+                "meta": { "$ref": "#/components/schemas/PageMeta" }
+              }
+            }
+          }
+        }
+      },
+      "BadRequest": {
+        "description": "Invalid request",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "Unauthorized": {
+        "description": "Missing/invalid Bearer token",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "example": {
+              "error": {
+                "type": "authentication_error",
+                "code": "unauthorized",
+                "message": "Missing or invalid API key. Send \"Authorization: Bearer ros_…\" (demo token: ros_demo).",
+                "request_id": "req_000001",
+                "doc_url": "https://docs.runos.com/errors#unauthorized"
+              }
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "example": {
+              "error": {
+                "type": "invalid_request_error",
+                "code": "not_found",
+                "message": "No member with id mem_999.",
+                "request_id": "req_000002",
+                "doc_url": "https://docs.runos.com/errors#not_found"
+              }
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "Conflict",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": ["type", "code", "message"],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["invalid_request_error", "authentication_error", "permission_error", "consent_error", "rate_limit_error", "conflict_error", "api_error"]
+              },
+              "code": { "type": "string" },
+              "message": { "type": "string" },
+              "request_id": { "type": "string" },
+              "doc_url": { "type": "string" }
+            }
+          }
+        }
+      },
+      "PageMeta": {
+        "type": "object",
+        "properties": {
+          "next_cursor": { "type": ["string", "null"], "description": "Opaque; null on the last page" },
+          "total": { "type": "integer" }
+        }
+      },
+      "ConsentScope": {
+        "type": "string",
+        "enum": ["profile.basic", "activity.summary", "activity.detailed", "health.medical", "location.live", "marketing.brands", "photos.appearances"]
+      },
+      "MemberStatus": { "type": "string", "enum": ["active", "at-risk", "lapsed", "new"] },
+      "Member": {
+        "type": "object",
+        "description": "Consent-filtered: weeklyKm and prs appear only with the member's activity.summary grant; otherwise consent_required lists the missing scope. Health/medical fields are never exposed.",
+        "properties": {
+          "id": { "type": "string", "example": "mem_001" },
+          "name": { "type": "string" },
+          "email": { "type": "string" },
+          "joinedAt": { "type": "string", "format": "date-time" },
+          "status": { "$ref": "#/components/schemas/MemberStatus" },
+          "roles": { "type": "array", "items": { "type": "string", "enum": ["member", "ambassador", "volunteer", "coach", "organizer"] } },
+          "tier": { "type": "string", "enum": ["free", "monthly", "annual"] },
+          "city": { "type": "string" },
+          "avatarColor": { "type": "string" },
+          "weeklyKm": { "type": "number", "description": "Requires activity.summary consent" },
+          "attendanceRate": { "type": "number" },
+          "eventsAttended": { "type": "integer" },
+          "lastSeen": { "type": "string", "format": "date-time" },
+          "churnRisk": { "type": "number" },
+          "communityScore": { "type": "number" },
+          "ltv": { "type": "number" },
+          "consents": { "type": "array", "items": { "$ref": "#/components/schemas/ConsentScope" } },
+          "connectedApps": { "type": "array", "items": { "type": "string" } },
+          "prs": {
+            "type": "array",
+            "description": "Requires activity.summary consent",
+            "items": { "type": "object", "properties": { "distance": { "type": "string" }, "time": { "type": "string" } } }
+          },
+          "volunteerHours": { "type": "number" },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "consent_required": { "type": "array", "items": { "$ref": "#/components/schemas/ConsentScope" } }
+        }
+      },
+      "EventStatus": { "type": "string", "enum": ["draft", "published", "live", "completed"] },
+      "EventType": { "type": "string", "enum": ["long-run", "tempo", "social", "race", "track", "trail"] },
+      "Event": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "evt_001" },
+          "title": { "type": "string" },
+          "type": { "$ref": "#/components/schemas/EventType" },
+          "status": { "$ref": "#/components/schemas/EventStatus" },
+          "date": { "type": "string", "format": "date-time" },
+          "location": { "type": "string" },
+          "routeName": { "type": "string" },
+          "distanceKm": { "type": "number" },
+          "capacity": { "type": "integer" },
+          "registered": { "type": "integer" },
+          "checkedIn": { "type": "integer" },
+          "waitlist": { "type": "integer" },
+          "price": { "type": "number" },
+          "pacers": { "type": "array", "items": { "type": "string" } },
+          "volunteers": { "type": "array", "items": { "type": "string" } },
+          "weather": { "type": "string" },
+          "description": { "type": "string" },
+          "predictedAttendance": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 }
+        }
+      },
+      "Registration": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "reg_001" },
+          "eventId": { "type": "string" },
+          "memberId": { "type": "string" },
+          "registeredAt": { "type": "string", "format": "date-time" },
+          "checkedInAt": { "type": ["string", "null"], "format": "date-time" },
+          "waiverSigned": { "type": "boolean" }
+        }
+      },
+      "Payment": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "pay_001" },
+          "memberId": { "type": "string" },
+          "kind": { "type": "string", "enum": ["membership", "ticket", "merch", "marketplace"] },
+          "description": { "type": "string" },
+          "amount": { "type": "number" },
+          "fee": { "type": "number", "description": "0.5% platform fee, computed server-side" },
+          "status": { "type": "string", "enum": ["succeeded", "pending", "failed", "refunded"] },
+          "date": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Sponsor": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "spo_1" },
+          "name": { "type": "string" },
+          "industry": { "type": "string" },
+          "contact": { "type": "string" },
+          "stage": { "type": "string", "enum": ["lead", "contacted", "proposal", "negotiation", "active", "renewal"] },
+          "dealValue": { "type": "number" },
+          "nextStep": { "type": "string" },
+          "lastTouch": { "type": "string", "format": "date-time" },
+          "logoHue": { "type": "number" }
+        }
+      },
+      "Perk": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "perk_1" },
+          "partner": { "type": "string" },
+          "category": { "type": "string" },
+          "offer": { "type": "string" },
+          "redemptions": { "type": "integer" },
+          "monthlyLimit": { "type": ["integer", "null"] },
+          "active": { "type": "boolean" }
+        }
+      },
+      "Challenge": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "chal_1" },
+          "name": { "type": "string" },
+          "metric": { "type": "string" },
+          "target": { "type": "number" },
+          "unit": { "type": "string" },
+          "endsAt": { "type": "string", "format": "date-time" },
+          "participants": { "type": "integer" },
+          "leaders": {
+            "type": "array",
+            "items": { "type": "object", "properties": { "memberId": { "type": "string" }, "value": { "type": "number" } } }
+          }
+        }
+      },
+      "Journey": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "jrn_1" },
+          "name": { "type": "string" },
+          "trigger": { "type": "string" },
+          "status": { "type": "string", "enum": ["active", "paused", "draft"] },
+          "steps": { "type": "integer" },
+          "enrolled": { "type": "integer" },
+          "completed": { "type": "integer" },
+          "conversionGoal": { "type": "string" },
+          "conversionRate": { "type": "number" }
+        }
+      },
+      "WeeklyMetric": {
+        "type": "object",
+        "properties": {
+          "week": { "type": "string" },
+          "wacm": { "type": "number" },
+          "attendance": { "type": "number" },
+          "newMembers": { "type": "integer" },
+          "revenue": { "type": "number" },
+          "churned": { "type": "integer" }
+        }
+      },
+      "Metrics": {
+        "type": "object",
+        "properties": {
+          "wacm": { "type": "array", "items": { "$ref": "#/components/schemas/WeeklyMetric" } },
+          "mrr": { "type": "number" },
+          "revenueThisMonth": { "type": "number" },
+          "counts": {
+            "type": "object",
+            "properties": {
+              "members": { "type": "integer" },
+              "activeMembers": { "type": "integer" },
+              "atRiskMembers": { "type": "integer" },
+              "newMembers": { "type": "integer" },
+              "events": { "type": "integer" },
+              "upcomingEvents": { "type": "integer" },
+              "registrations": { "type": "integer" },
+              "checkedInTotal": { "type": "integer" },
+              "payments": { "type": "integer" },
+              "sponsors": { "type": "integer" },
+              "perkRedemptions": { "type": "integer" },
+              "challenges": { "type": "integer" },
+              "journeys": { "type": "integer" }
+            }
+          },
+          "sponsorPipelineValue": { "type": "number" },
+          "activeSponsorValue": { "type": "number" }
+        }
+      },
+      "AuditEntry": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "aud_001" },
+          "action": { "type": "string", "example": "member.created" },
+          "entity": { "type": "string", "example": "mem_049" },
+          "at": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}
