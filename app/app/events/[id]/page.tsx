@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Check, Clock, QrCode } from 'lucide-react';
+import { Check, Clock, Megaphone, QrCode } from 'lucide-react';
 import { getEvent, getMember, registrations } from '@/lib/data';
 import { formatDate, formatDateTime, money, pct, relativeDays } from '@/lib/utils';
 import { Avatar, Badge, Card, CardTitle, KV, ProgressBar } from '@/components/ui';
@@ -81,6 +81,12 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             className="rounded-full border border-line px-5 py-2.5 font-display text-sm font-semibold text-paper transition hover:border-volt/40"
           >
             Edit
+          </Link>
+          <Link
+            href={`/app/events/${event.id}/promote`}
+            className="inline-flex items-center gap-2 rounded-full border border-line px-5 py-2.5 font-display text-sm font-semibold text-paper transition hover:border-volt/40"
+          >
+            <Megaphone size={16} /> Promote
           </Link>
           <Link
             href={`/app/events/${event.id}/checkin`}

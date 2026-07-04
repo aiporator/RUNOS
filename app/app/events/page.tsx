@@ -53,12 +53,20 @@ export default function EventsPage() {
         title="Events"
         sub={`${published.length} published and upcoming · publishing one event auto-creates its full growth pack.`}
         actions={
-          <Link
-            href="#"
-            className="rounded-full bg-volt px-5 py-2.5 font-display text-sm font-semibold text-ink transition hover:shadow-[0_8px_28px_rgba(205,251,80,0.35)]"
-          >
-            New event
-          </Link>
+          <>
+            <Link
+              href="/app/events/calendar"
+              className="rounded-full border border-line px-5 py-2.5 font-display text-sm font-semibold text-paper transition hover:border-volt/40"
+            >
+              Calendar view
+            </Link>
+            <Link
+              href="#"
+              className="rounded-full bg-volt px-5 py-2.5 font-display text-sm font-semibold text-ink transition hover:shadow-[0_8px_28px_rgba(205,251,80,0.35)]"
+            >
+              New event
+            </Link>
+          </>
         }
       />
 

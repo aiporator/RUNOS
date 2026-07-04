@@ -81,8 +81,8 @@ export default function Hero() {
           <Link href="/app" className={`group ${btnVolt}`}>
             Start free — under 10 minutes <span className={arr}>→</span>
           </Link>
-          <Link href="#pacer" className={btnGhost}>
-            Watch the 3-minute demo
+          <Link href="/demo" className={btnGhost}>
+            Try the live demo
           </Link>
         </div>
         <p className="mk-fade-up mt-3.5 text-[13px] text-muted" style={{ animationDelay: '0.9s' }}>

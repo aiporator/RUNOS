@@ -49,6 +49,12 @@ export default function MarketingFooter({ anchorPrefix = '' }: MarketingFooterPr
             <Link href={`${anchorPrefix}#surfaces`} className={colLink}>
               Clubs
             </Link>
+            <Link href="/for-gyms" className={colLink}>
+              Gyms &amp; studios
+            </Link>
+            <Link href="/for-workshops" className={colLink}>
+              Workshops &amp; courses
+            </Link>
             <Link href={`${anchorPrefix}#surfaces`} className={colLink}>
               Members
             </Link>
