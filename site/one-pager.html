@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RunOS — Investor One-Pager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#101208; --paper:#fdfdf9; --volt:#cdfb50; --volt-deep:#96c221;
+  --muted:rgba(16,18,8,.62); --line:rgba(16,18,8,.14);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#e8e9e0;font-family:Inter,system-ui,sans-serif;color:var(--ink);
+  -webkit-font-smoothing:antialiased;display:grid;place-items:start center;padding:28px 12px}
+.page{width:820px;max-width:100%;background:var(--paper);padding:44px 52px 36px;
+  box-shadow:0 24px 70px rgba(16,18,8,.18)}
+h1,h2,h3{font-family:"Space Grotesk",system-ui,sans-serif;letter-spacing:-.02em;line-height:1.05}
+/* header */
+.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2.5px solid var(--ink);padding-bottom:18px;margin-bottom:20px}
+.logo{display:flex;align-items:center;gap:9px;font-family:"Space Grotesk",system-ui,sans-serif;font-weight:700;font-size:26px}
+.logo .dot{width:12px;height:12px;border-radius:50%;background:var(--volt);border:2px solid var(--ink)}
+.head-right{text-align:right;font-size:11.5px;color:var(--muted);line-height:1.7}
+.tagline{margin-top:6px;font-size:14px;font-weight:600;color:var(--ink)}
+.tagline em{font-style:normal;background:var(--volt);padding:1px 6px;border-radius:4px}
+/* grid */
+.cols{display:grid;grid-template-columns:1.1fr .9fr;gap:0 30px}
+section{margin-bottom:14px;break-inside:avoid}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px;
+  display:flex;align-items:center;gap:8px}
+h2::before{content:"";width:14px;height:3px;background:var(--volt-deep);flex:none}
+p,li{font-size:11.8px;line-height:1.55;color:rgba(16,18,8,.86)}
+p+p{margin-top:5px}
+strong{font-weight:600;color:var(--ink)}
+ul{list-style:none}
+li{padding-left:14px;position:relative;margin-bottom:3.5px}
+li::before{content:"";position:absolute;left:0;top:6.5px;width:6px;height:6px;border-radius:50%;background:var(--volt);outline:1.2px solid var(--ink)}
+ol{padding-left:16px}
+ol li{padding-left:4px;margin-bottom:3.5px}
+ol li::before{display:none}
+/* stat band */
+.band{display:grid;grid-template-columns:repeat(4,1fr);border:2px solid var(--ink);border-radius:12px;overflow:hidden;margin:4px 0 16px}
+.band>div{padding:10px 12px;border-right:1.5px solid var(--line)}
+.band>div:last-child{border-right:none}
+.band .n{font-family:"Space Grotesk",system-ui,sans-serif;font-weight:700;font-size:21px;letter-spacing:-.02em}
+.band .l{font-size:9.6px;color:var(--muted);line-height:1.35;margin-top:2px}
+.band .n em{font-style:normal;color:var(--volt-deep);font-size:.62em}
+/* doors */
+.doors{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
+.door{border:1.5px solid var(--ink);border-radius:10px;padding:8px 10px}
+.door h3{font-size:12px;margin-bottom:2px}
+.door p{font-size:10.2px;color:var(--muted);line-height:1.45}
+.door.mid{background:var(--ink);color:var(--paper)}
+.door.mid h3{color:var(--volt)}
+.door.mid p{color:rgba(253,253,249,.72)}
+/* ask box */
+.ask{background:var(--ink);color:var(--paper);border-radius:14px;padding:16px 18px;margin-top:2px}
+.ask h2{color:var(--volt);margin-bottom:6px}
+.ask h2::before{background:var(--volt)}
+.ask p,.ask li{color:rgba(253,253,249,.88)}
+.ask .big{font-family:"Space Grotesk",system-ui,sans-serif;font-weight:700;font-size:30px;color:var(--paper);letter-spacing:-.02em;margin-bottom:4px}
+.ask .big em{font-style:normal;color:var(--volt)}
+.ask li::before{outline-color:var(--paper)}
+/* footer */
+.foot{border-top:1.5px solid var(--line);margin-top:6px;padding-top:12px;display:flex;justify-content:space-between;gap:12px;font-size:10.5px;color:var(--muted)}
+.foot strong{color:var(--ink)}
+.chip{display:inline-block;background:rgba(150,194,33,.16);border:1px solid var(--volt-deep);
+  color:var(--ink);border-radius:100px;padding:1px 8px;font-size:9.8px;font-weight:600;margin:1px 2px 1px 0}
+@media print{
+  body{background:#fff;padding:0}
+  .page{box-shadow:none;width:100%;padding:24px 34px}
+  @page{size:A4;margin:8mm}
+}
+@media(max-width:700px){.cols{grid-template-columns:1fr}.band{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="head">
+    <div>
+      <div class="logo"><span class="dot"></span>RunOS</div>
+      <div class="tagline">The operating system for <em>communities that move</em>.</div>
+    </div>
+    <div class="head-right">
+      run.aiporate.com<br>start@aiporate.com<br><strong>Seed · Confidential</strong>
+    </div>
+  </div>
+
+  <div class="band">
+    <div><div class="n">7<em>→1</em></div><div class="l">Tools replaced by one login &amp; database</div></div>
+    <div><div class="n">3</div><div class="l">Entry doors: Solo · Workspace · Network — one engine</div></div>
+    <div><div class="n">46</div><div class="l">Production routes live today, incl. 24-endpoint API</div></div>
+    <div><div class="n">$5–7B</div><div class="l">Community-sport software &amp; payments category</div></div>
+  </div>
+
+  <div class="cols">
+    <div>
+      <section>
+        <h2>Problem</h2>
+        <p>Community sport is booming, but every club, gym, studio, and workshop organizer runs on the same duct tape: WhatsApp + Strava + Eventbrite (5%+ fees) + Google Sheets + Instagram + PayPal. Seven tools, zero connected — one exhausted volunteer is the API. <strong>Strava owns activity. Eventbrite owns events. Nobody owns the operating system.</strong></p>
+      </section>
+
+      <section>
+        <h2>Solution</h2>
+        <p>One platform: members, events, payments, sponsors, growth automations — plus <strong>Pacer</strong>, the AI chief-of-staff that predicts attendance, flags churn, drafts sponsor proposals from verified data, and plans whole months. Publishing an event auto-creates its landing page, registration, QR check-in, reminders, and an 11-post social campaign across 6 channels.</p>
+        <div class="doors">
+          <div class="door"><h3>Solo</h3><p>Any event page in 60s. Free ≤ 20 people, no account. The wedge Eventbrite taxes.</p></div>
+          <div class="door mid"><h3>Workspace</h3><p>Clubs, gyms, studios, workshops. Free &lt; 50 members → $79 → $199/mo.</p></div>
+          <div class="door"><h3>Network</h3><p>Chapters, franchises, cities, federations. From $999/mo.</p></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Moat — compounding in order</h2>
+        <ul>
+          <li><strong>Workflow lock-in</strong> — switching cost grows with every automation wired</li>
+          <li><strong>Consented data layer</strong> — members control 7 sharing scopes; GDPR-native; clubs get a view no third party has</li>
+          <li><strong>Network effects</strong> — local benefits passport, brand marketplace, anonymized cross-club benchmarks (k≥50)</li>
+          <li><strong>Built-in distribution</strong> — every public event page and ticket says "Powered by RunOS"</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Business model</h2>
+        <p>SaaS tiers + platform fee that <strong>shrinks as clubs grow</strong> (2%→0.5%) + ticket fees below Eventbrite + 10% marketplace commission + brand-side SaaS ($499+/seat/mo) + AI add-on. ~80/20 SaaS-to-transactions in year 1 → 55/45 by year 3. Targets: LTV:CAC ≥5:1 self-serve, NRR 110%+.</p>
+      </section>
+    </div>
+
+    <div>
+      <section>
+        <h2>Why we're further than a deck</h2>
+        <p><strong>The platform is built, not promised</strong> — verifiable in the data room today:</p>
+        <ul>
+          <li>All 8 product surfaces live: CRM, events + QR check-in mission control, payments ledger, automations, challenges &amp; perks, sponsor CRM, analytics + Pacer AI, white-label</li>
+          <li>Self-serve funnel shipped &amp; instrumented: instant demo → onboarding wizard → lead API → PostHog dashboards</li>
+          <li>Micro-events wedge live: 60-second creation, public RSVP pages, social campaign generator</li>
+          <li>24-endpoint REST API + OpenAPI, consent-filtered, audited</li>
+          <li>30+ doc execution bible: multi-tenant Postgres schema (RLS), GDPR/security model, 36-month roadmap, sprint backlog, GTM playbooks</li>
+        </ul>
+        <p style="margin-top:6px"><span class="chip">Honest maturity</span> Demo-fidelity data today; persistence, Stripe Connect &amp; tracker OAuth are the first 90 days post-raise — backlog already written.</p>
+      </section>
+
+      <section>
+        <h2>Go-to-market</h2>
+        <p>Founding-club program: 50 clubs, white-glove migration, lifetime founding pricing — Amsterdam, London, Berlin, NYC, Austin. City density unlocks the benefits network; every event page, recap, and social post recruits the next organizer. Verticals beyond running (gyms, studios, workshops) already shipped.</p>
+      </section>
+
+      <div class="ask">
+        <h2>The raise</h2>
+        <div class="big">$2.5M <em>seed</em> · 18–24 months</div>
+        <ul>
+          <li>~55% engineering (2 squads: persistence, payments, ingestion, member app)</li>
+          <li>~20% GTM (founding 50, benefits density, first brand pilots)</li>
+          <li>~15% founder-led sales &amp; migrations · ~10% SOC 2 / buffer</li>
+        </ul>
+        <p style="margin-top:6px"><strong>Buys the year-1 arc:</strong> 50 founding clubs → 500 organizations · ~$60k MRR · 45,000 weekly-active members · first brand revenue.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span><strong>End game:</strong> 50,000 clubs · 18M runners · 500 brands · 150 countries — then every community that meets and moves.</span>
+    <span><strong>start@aiporate.com</strong></span>
+  </div>
+
+</div>
+</body>
+</html>
