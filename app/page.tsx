@@ -10,7 +10,8 @@ import PacerSection from '@/components/marketing/pacer-chat';
 import PricingSection from '@/components/marketing/pricing-section';
 import FaqAccordion from '@/components/marketing/faq';
 import { FAQS, STEPS, TESTIMONIALS } from '@/components/marketing/data';
-import { arr, btnVolt, label } from '@/components/marketing/styles';
+import { arr, btnGhost, btnVolt, label } from '@/components/marketing/styles';
+import { VERTICALS } from '@/lib/verticals';
 
 function StepsSection() {
   return (
@@ -60,6 +61,51 @@ function StepsSection() {
             </Reveal>
           ))}
         </div>
+      </div>
+    </section>
+  );
+}
+
+function InstantEventsSection() {
+  return (
+    <section className="relative isolate overflow-hidden bg-bg py-[120px] text-paper" id="instant-events">
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(55%_70%_at_50%_0%,rgba(205,251,80,0.07),transparent_70%)]" />
+      <div className="mx-auto max-w-[1200px] px-6 text-center">
+        <Reveal>
+          <span className={`${label} text-muted`}>Instant events — no setup, no signup</span>
+          <h2 className="mx-auto max-w-[18ch] font-display text-[clamp(32px,4.4vw,58px)] font-semibold leading-[1.05] tracking-[-0.02em]">
+            Just need <em className="not-italic text-volt">one event page?</em>
+          </h2>
+        </Reveal>
+        <Reveal delay={1}>
+          <p className="mx-auto mt-6 max-w-[52ch] text-[17px] text-muted">
+            No club, no gym, no problem. Create a beautiful event page in 60 seconds — free up to
+            20 people, no account needed. Workshops, birthdays, meetups, training sessions.
+          </p>
+        </Reveal>
+        <Reveal delay={2}>
+          <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+            {VERTICALS.map((v) => (
+              <span
+                key={v.id}
+                className="inline-flex items-center gap-2 rounded-full border border-line bg-white/[0.045] px-4 py-2 text-[13.5px] font-medium text-paper/85 transition-colors duration-300 hover:border-volt/40"
+              >
+                <span aria-hidden>{v.emoji}</span>
+                {v.label}
+              </span>
+            ))}
+          </div>
+        </Reveal>
+        <Reveal delay={3}>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+            <Link href="/new" className={`group ${btnVolt}`}>
+              Create an event free <span className={arr}>→</span>
+            </Link>
+            <Link href="/e/ie_demo1" className={`group ${btnGhost}`}>
+              See an example
+            </Link>
+          </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -213,6 +259,7 @@ export default function Home() {
       <StatsSection />
       <SurfacesSection />
       <StepsSection />
+      <InstantEventsSection />
       <QuoteBand />
       <PacerSection />
       <PricingSection />

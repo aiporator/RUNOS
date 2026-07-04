@@ -55,6 +55,30 @@ function PricingHero() {
   );
 }
 
+function SoloBanner() {
+  return (
+    <section className="bg-bg pb-10">
+      <div className="mx-auto max-w-[1200px] px-6">
+        <Reveal className="flex flex-col items-start justify-between gap-6 rounded-card border border-line bg-white/[0.035] px-7 py-6 transition-colors duration-300 hover:border-volt/40 md:flex-row md:items-center">
+          <div>
+            <div className="mb-1.5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <span className="font-display text-lg font-semibold">Solo — one-off events</span>
+              <span className="font-display text-lg font-semibold text-volt">Free</span>
+            </div>
+            <p className="max-w-[72ch] text-[14.5px] text-muted">
+              Up to 20 people per event, unlimited events, no account. When you&apos;re ready for
+              members, memberships, and automations, Starter is one click away.
+            </p>
+          </div>
+          <Link href="/new" className={`group ${btnVolt} shrink-0`}>
+            Create an event free <span className={arr}>→</span>
+          </Link>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
 function FeeExplainer() {
   return (
     <section className="bg-paper-2 py-[100px] text-ink">
@@ -141,6 +165,7 @@ export default function PricingPage() {
     <main className="overflow-x-clip bg-bg text-paper">
       <MarketingNav anchorPrefix="/" />
       <PricingHero />
+      <SoloBanner />
       <PricingSection full />
       <FeeExplainer />
       <PricingFaq />
