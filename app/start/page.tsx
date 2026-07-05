@@ -420,7 +420,7 @@ export default function StartPage() {
             {state.importMethod === 'paste' && (
               <div className="mt-6 rounded-card border border-line bg-bg-2 p-5">
                 <label htmlFor="paste-emails" className={labelCls}>
-                  Paste emails (any format — we'll find them)
+                  Paste emails (any format — we&apos;ll find them)
                 </label>
                 <textarea
                   id="paste-emails"

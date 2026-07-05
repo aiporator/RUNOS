@@ -35,7 +35,7 @@ function PrivateLinkCard() {
           This manage link is private
         </h1>
         <p className="mx-auto mt-2 max-w-xs text-[13.5px] text-muted">
-          Only the host's manage link (with its secret key) opens this page. If you created this
+          Only the host&apos;s manage link (with its secret key) opens this page. If you created this
           event, use the link you got when you published it.
         </p>
         <Link
@@ -113,7 +113,7 @@ export default async function ManageInstantEventPage({
                 Your event is live! Share the link below.
               </div>
               <div className="text-[12.5px] text-muted">
-                Bookmark this page — it's your private manage link. No account, no password.
+                Bookmark this page — it&apos;s your private manage link. No account, no password.
               </div>
             </div>
           </div>

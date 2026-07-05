@@ -11,6 +11,14 @@ export default function LiveRsvpForm({
   const [email, setEmail] = useState('');
   const [state, setState] = useState<'idle' | 'busy' | 'done' | 'dup'>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [started, setStarted] = useState(false);
+
+  function onStart() {
+    if (!started) {
+      setStarted(true);
+      track('rsvp_started', { eventId });
+    }
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -55,8 +63,8 @@ export default function LiveRsvpForm({
   return (
     <form onSubmit={submit} className="space-y-2.5">
       <div className="font-display text-[13.5px] font-semibold">{full ? 'Join the waitlist' : 'Register — 10 seconds'}</div>
-      <input className={input} placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} required />
-      <input className={input} type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+      <input className={input} placeholder="Your name" aria-label="Your name" value={name} onFocus={onStart} onChange={(e) => setName(e.target.value)} required />
+      <input className={input} type="email" placeholder="Email" aria-label="Email address" value={email} onFocus={onStart} onChange={(e) => setEmail(e.target.value)} required />
       {error && <p className="text-[11.5px] text-danger">{error}</p>}
       <button
         disabled={state === 'busy'}

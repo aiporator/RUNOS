@@ -354,7 +354,7 @@ export default function CreateEventForm() {
               {submitting ? 'Publishing…' : 'Publish my event →'}
             </button>
             <p className="text-center text-[12px] text-muted-2">
-              You get a shareable page + a private manage link. That's it — no signup.
+              You get a shareable page + a private manage link. That&apos;s it — no signup.
             </p>
           </form>
 

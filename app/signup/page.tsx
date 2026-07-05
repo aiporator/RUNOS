@@ -64,6 +64,7 @@ export default function SignupPage() {
           return;
         }
         track('account_created', { vertical });
+        track('signup_completed', { vertical });
         if (data.session && data.user) {
           await ensureOrg(data.user.id);
           router.push('/my');

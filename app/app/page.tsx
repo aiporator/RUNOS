@@ -83,7 +83,7 @@ export default function DashboardPage() {
             <Sparkline data={wacmSeries} width={150} height={54} />
           </div>
           <div className="mt-5 border-t border-line pt-4">
-            <div className="mb-2 text-[12px] font-semibold text-muted">Pacer's read</div>
+            <div className="mb-2 text-[12px] font-semibold text-muted">Pacer&apos;s read</div>
             <p className="text-[13px] leading-relaxed text-muted">
               Engagement is compounding: 5 of the last 6 weeks grew. The 10K Time Trial journey is at 73% of capacity
               with 16 days to go — on pace to sell out around July 12.

@@ -90,7 +90,87 @@ export default function MyClubPage() {
     });
     setBusy(false);
     if (err) setError(err.message);
-    else void load(session.user.id);
+    else {
+      track('club_created', { vertical: 'running-club' });
+      void load(session.user.id);
+    }
+  }
+
+  const [actionMsg, setActionMsg] = useState<string | null>(null);
+
+  function flash(msg: string) {
+    setActionMsg(msg);
+    window.setTimeout(() => setActionMsg(null), 2500);
+  }
+
+  async function copyLink() {
+    if (!org) return;
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/r/${org.slug}`);
+      flash('Share link copied to clipboard');
+    } catch {
+      flash(`Share link: ${window.location.origin}/r/${org.slug}`);
+    }
+  }
+
+  async function exportCsv(ev: EventWithStats) {
+    const supabase = getSupabase();
+    const { data, error: err } = await supabase
+      .from('runos_rsvps')
+      .select('name,email,status,checked_in,created_at')
+      .eq('event_id', ev.id)
+      .order('created_at', { ascending: true });
+    if (err) {
+      flash(`Export failed: ${err.message}`);
+      return;
+    }
+    const rows = (data ?? []) as { name: string; email: string; status: string; checked_in: boolean; created_at: string }[];
+    const esc = (s: string) => `"${String(s).replace(/"/g, '""')}"`;
+    const csv = ['name,email,status,checked_in,registered_at']
+      .concat(rows.map((r) => [esc(r.name), esc(r.email), r.status, r.checked_in, r.created_at].join(',')))
+      .join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${ev.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-attendees.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    track('csv_exported', { eventId: ev.id, rows: rows.length });
+    flash(`Exported ${rows.length} attendee${rows.length === 1 ? '' : 's'}`);
+  }
+
+  async function cancelEvent(ev: EventWithStats) {
+    if (!window.confirm(`Cancel "${ev.title}"? It disappears from your public page. Attendees are NOT notified automatically — message your group.`)) return;
+    const supabase = getSupabase();
+    const { error: err } = await supabase.from('runos_events').update({ published: false }).eq('id', ev.id);
+    if (err) {
+      flash(`Cancel failed: ${err.message}`);
+      return;
+    }
+    track('event_cancelled', { eventId: ev.id });
+    flash('Event cancelled — removed from your public page');
+    if (session) void load(session.user.id);
+  }
+
+  async function republishEvent(ev: EventWithStats) {
+    const supabase = getSupabase();
+    const { error: err } = await supabase.from('runos_events').update({ published: true }).eq('id', ev.id);
+    if (!err) {
+      flash('Event republished');
+      if (session) void load(session.user.id);
+    }
+  }
+
+  function duplicateEvent(ev: EventWithStats) {
+    setTitle(`${ev.title}`);
+    setType(ev.type);
+    setLocation(ev.location ?? '');
+    setCapacity(ev.capacity);
+    setDescription(ev.description ?? '');
+    setDate('');
+    flash('Details copied into the form — pick a new date and publish');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   async function createEvent(e: React.FormEvent) {
@@ -120,6 +200,8 @@ export default function MyClubPage() {
       return;
     }
     track('live_event_published', { vertical: org.vertical, capacity });
+    track('event_created', { vertical: org.vertical });
+    track('event_published', { vertical: org.vertical, capacity });
     setJustCreated(data?.id ?? null);
     setTitle('');
     setDescription('');
@@ -171,9 +253,21 @@ export default function MyClubPage() {
             <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight">{org.name}</h1>
             <p className="mt-1.5 text-[13.5px] text-muted">
               Public page:{' '}
-              <Link href={publicUrl} className="font-semibold text-volt hover:underline">{publicUrl}</Link>
-              {' '}— share it anywhere. Registrations land here in real time.
+              <Link href={publicUrl} className="font-semibold text-volt hover:underline">{publicUrl}</Link>{' '}
+              <button
+                onClick={() => void copyLink()}
+                aria-label="Copy public page link"
+                className="ml-1 rounded-full border border-line px-2.5 py-0.5 text-[11.5px] font-semibold text-muted transition hover:border-volt/50 hover:text-volt"
+              >
+                Copy link
+              </button>{' '}
+              — share it anywhere. Registrations land here in real time.
             </p>
+            {actionMsg && (
+              <p role="status" className="mt-2 inline-block rounded-full border border-volt/30 bg-volt/10 px-3 py-1 text-[12px] font-semibold text-volt">
+                {actionMsg}
+              </p>
+            )}
           </div>
 
           {justCreated && (
@@ -230,7 +324,12 @@ export default function MyClubPage() {
                     <div key={e.id} className="rounded-xl border border-line bg-bg-3 px-4 py-3.5">
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
-                          <div className="truncate font-display text-[14px] font-semibold">{e.title}</div>
+                          <div className="flex items-center gap-2">
+                            <div className="truncate font-display text-[14px] font-semibold">{e.title}</div>
+                            {!e.published && (
+                              <span className="flex-none rounded-full border border-danger/30 bg-danger/10 px-2 py-0.5 text-[10px] font-semibold text-danger">Cancelled</span>
+                            )}
+                          </div>
                           <div className="mt-0.5 text-[12px] text-muted">
                             {new Date(e.starts_at).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                             {e.location ? ` · ${e.location}` : ''}
@@ -240,6 +339,26 @@ export default function MyClubPage() {
                           <div className="font-display text-[18px] font-bold text-volt">{e.confirmed}<span className="text-[12px] font-medium text-muted">/{e.capacity}</span></div>
                           <div className="text-[10.5px] text-muted-2">registered</div>
                         </div>
+                      </div>
+                      <div className="mt-2.5 flex flex-wrap gap-1.5 border-t border-line/60 pt-2.5">
+                        <button onClick={() => void exportCsv(e)} className="rounded-full border border-line px-2.5 py-1 text-[11px] font-semibold text-muted transition hover:border-volt/50 hover:text-volt">
+                          Export CSV
+                        </button>
+                        <button onClick={() => duplicateEvent(e)} className="rounded-full border border-line px-2.5 py-1 text-[11px] font-semibold text-muted transition hover:border-volt/50 hover:text-volt">
+                          Duplicate
+                        </button>
+                        {e.published ? (
+                          <button onClick={() => void cancelEvent(e)} className="rounded-full border border-line px-2.5 py-1 text-[11px] font-semibold text-muted transition hover:border-danger/50 hover:text-danger">
+                            Cancel
+                          </button>
+                        ) : (
+                          <button onClick={() => void republishEvent(e)} className="rounded-full border border-line px-2.5 py-1 text-[11px] font-semibold text-muted transition hover:border-volt/50 hover:text-volt">
+                            Republish
+                          </button>
+                        )}
+                        <Link href={publicUrl} className="rounded-full border border-line px-2.5 py-1 text-[11px] font-semibold text-muted transition hover:border-volt/50 hover:text-volt">
+                          View public page
+                        </Link>
                       </div>
                     </div>
                   ))}

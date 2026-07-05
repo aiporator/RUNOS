@@ -3,9 +3,27 @@ import Providers from './providers';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'RunOS — The Operating System for Running Communities',
+  metadataBase: new URL('https://run.aiporate.com'),
+  title: {
+    default: 'RunOS — The Operating System for Running Communities',
+    template: '%s · RunOS',
+  },
   description:
     'RunOS replaces the spreadsheet, the group chat sprawl, and the ticketing tax with one platform: members, events, money, sponsors, and an AI that plans your month.',
+  openGraph: {
+    type: 'website',
+    siteName: 'RunOS',
+    title: 'RunOS — Run the club. Not the chaos.',
+    description:
+      'One login. One database. Your whole club. Members, events, money, sponsors, and an AI that plans your month.',
+    url: 'https://run.aiporate.com',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'RunOS — Run the club. Not the chaos.',
+    description: 'The operating system for communities that move. Free under 50 members.',
+  },
+  alternates: { canonical: '/' },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

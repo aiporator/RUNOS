@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getServerSupabase, type LiveEvent, type LiveOrg } from '@/lib/supabase';
 import { getVertical } from '@/lib/verticals';
 import LiveRsvpForm from '../live-rsvp-form';
+import PageViewTracker from '../page-view-tracker';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,6 +34,7 @@ export default async function PublicLiveClubPage({ params }: { params: Promise<{
 
   return (
     <main className="min-h-screen">
+      <PageViewTracker slug={slug} />
       <div className="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur-lg">
         <div className="mx-auto flex max-w-[840px] items-center justify-between px-5 py-3.5">
           <div className="flex items-center gap-2.5 font-display text-[16px] font-bold">
