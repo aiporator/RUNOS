@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // RunOS smoke tests — run against a server: `npm run start` then `npm run smoke`.
-// Covers routes, demo API contract, and instant-events flow. Live Supabase flows
-// (signup/RSVP) must be tested in a deployed environment (see DEPLOYMENT.md).
+// Covers routes, demo API contract, and the instant-events flow (in-memory,
+// no database required — see DEPLOYMENT.md for the persistence roadmap).
 
 const BASE = process.env.SMOKE_BASE ?? 'http://localhost:3000';
 const AUTH = { Authorization: 'Bearer ros_demo', 'Content-Type': 'application/json' };
@@ -40,7 +40,7 @@ async function page(path) {
 
 // ---------- routes ----------
 const PAGES_200 = ['/', '/pricing', '/for-gyms', '/for-workshops', '/demo', '/start', '/new',
-  '/signup', '/e/ie_demo1', '/c/harbor-city-runners', '/c/harbor-city-runners/evt_003',
+  '/e/ie_demo1', '/c/harbor-city-runners', '/c/harbor-city-runners/evt_003',
   '/app', '/app/community', '/app/events', '/app/events/calendar', '/app/events/evt_001/checkin',
   '/app/events/evt_003/promote', '/app/intelligence', '/robots.txt', '/sitemap.xml', '/openapi.json'];
 for (const p of PAGES_200) {

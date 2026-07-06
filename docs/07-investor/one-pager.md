@@ -22,7 +22,8 @@ Every published event auto-creates its landing page, registration, QR check-in, 
 and a full social campaign across six channels.
 
 **Three doors, one engine:**
-1. **Solo** — anyone creates an event page in 60 seconds, free ≤ 20 people, no account (the Luma-style wedge that Eventbrite taxes)
+1. **Solo** — anyone creates an event page in 60 seconds, free ≤ 20 people, no account, real
+   RSVPs from real people (the Luma-style wedge that Eventbrite taxes) — **live today, try it**
 2. **Workspace** — clubs, gyms, studios, workshop organizers (Starter free < 50 members → Club $79 → Pro $199/mo)
 3. **Network** — multi-chapter orgs, franchises, cities, federations (from $999/mo)
 
@@ -52,19 +53,21 @@ Target LTV:CAC ≥ 5:1 self-serve, ≥ 3:1 sales-assisted; NRR engine 110%+.
 ## Where we are — further than a deck
 
 **The platform is built, not promised** (all verifiable in the repo today):
-- 46-route production web platform: all 8 product surfaces, organizer calendar, QR check-in
+- 52-route production web platform: all 8 product surfaces, organizer calendar, QR check-in
   mission control, Pacer AI, sponsor CRM, benefits engine, white-label settings
 - Complete self-serve funnel: instant demo → onboarding wizard → lead API, fully
   instrumented in PostHog with live dashboards
 - 24-endpoint REST API + OpenAPI 3.1, consent-filtered reads, idempotent check-in, audit log
-- Micro-events wedge live: 60-second event creation, public RSVP pages, social campaign
-  generator (11 posts / 6 channels per event)
-- 30+ document execution bible: multi-tenant Postgres schema (RLS), security/GDPR model,
-  36-month roadmap, sprint-level backlog, GTM playbooks, enterprise sales kit
+- Micro-events wedge **live and testable right now**: create a real event at /new, share the
+  link, real people RSVP — plus a social campaign generator (11 posts / 6 channels per event)
+- 30+ document execution bible: multi-tenant Postgres schema design (RLS), security/GDPR
+  model, 36-month roadmap, sprint-level backlog, GTM playbooks, enterprise sales kit
 
-**Honest maturity:** demo-fidelity data today; productionizing persistence, payments
-(Stripe Connect), and tracker OAuth is the first 90 days post-raise — the sprint backlog
-is already written.
+**Honest maturity:** the product runs today on an in-memory data layer by design — real
+interactions, no durable storage yet. Multi-tenant Postgres (schema already designed),
+accounts, and payments (Stripe Connect) are the first 90 days post-raise — the sprint
+backlog is already written. We'd rather show a smaller number of things that are completely
+real than a larger number staged behind a login.
 
 ## The raise
 
@@ -81,6 +84,12 @@ founder-led sales & white-glove migrations, ~10% compliance/buffer (SOC 2 Type I
 community that meets and moves (CommunityOS). Every run, every class, every workshop,
 every community — flowing through one operating system.
 
+## Try it yourself
+
+- **Create a real event, get a real RSVP:** `/new` → publish → share the link → `/e/[id]`
+- **The full organizer OS:** `/demo` → `/app` (CRM, QR check-in, Pacer AI, sponsors)
+- **A club's public page:** `/c/harbor-city-runners`
+
 ---
 
-*Live demo: /demo · Data room: this repository · Contact: start@aiporate.com*
+*Data room: this repository · Contact: start@aiporate.com*

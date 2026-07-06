@@ -3,7 +3,7 @@ import type { MetadataRoute } from 'next';
 const BASE = 'https://run.aiporate.com';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const pages = ['', '/pricing', '/for-gyms', '/for-workshops', '/demo', '/start', '/new', '/signup'];
+  const pages = ['', '/pricing', '/for-gyms', '/for-workshops', '/demo', '/start', '/new'];
   return pages.map((p) => ({
     url: `${BASE}${p}`,
     changeFrequency: 'weekly',

@@ -61,11 +61,8 @@ export default function MarketingNav({ anchorPrefix = '' }: MarketingNavProps) {
           <Link href="/demo" className="text-[13px] text-muted-2 transition-colors hover:text-volt">
             Live demo
           </Link>
-          <Link href="/signup" className="text-[13px] text-muted-2 transition-colors hover:text-volt">
-            Sign in
-          </Link>
         </div>
-        <Link href="/signup" className={`group ${btnVolt} ${btnSm}`}>
+        <Link href="/new" className={`group ${btnVolt} ${btnSm}`}>
           Start free <span className={arr}>→</span>
         </Link>
       </div>

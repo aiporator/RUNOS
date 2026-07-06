@@ -10,8 +10,11 @@ running clubs manage, scale, monetize, and own their communities, while every ru
 controls exactly what they share.
 
 This repository is both the **working product** (Next.js platform: marketing site, funnel,
-organizer workspace, live mode on Supabase, REST API) and the **product bible** — the
-complete execution blueprint for design, engineering, and go-to-market teams.
+organizer workspace demo, instant events, REST API) and the **product bible** — the complete
+execution blueprint for design, engineering, and go-to-market teams. It runs with **zero
+database dependency** today — everything is a real, interactive, shareable prototype backed
+by an in-memory store, by deliberate design. See `DEPLOYMENT.md` for the durable-persistence
+roadmap once a club is ready to run real operations on it.
 
 ## Run it
 
@@ -20,13 +23,13 @@ npm install
 npm run dev          # http://localhost:3000
 npm run typecheck    # TypeScript strict — 0 errors
 npx next lint        # ESLint (core-web-vitals) — 0 errors
-npm run build        # production build — 55 routes
-npm start && npm run smoke   # 39 smoke assertions against the running server
+npm run build        # production build — 51 routes
+npm start && npm run smoke   # smoke assertions against the running server
 ```
 
 **Key surfaces:** `/` marketing · `/demo` instant product tour · `/start` onboarding wizard ·
-`/new` 60-second event creator · `/signup` → `/my` live club workspace (Supabase) ·
-`/r/[slug]` live public club pages · `/app` full organizer OS (seeded demo) ·
+`/new` 60-second event creator (real create → share → RSVP, no account) ·
+`/app` full organizer OS (seeded demo) ·
 `/api/v1/*` REST API (`app/api/README.md`, OpenAPI at `/openapi.json`).
 
 **Deploy:** see [`DEPLOYMENT.md`](DEPLOYMENT.md). **Pilot playbook:**
