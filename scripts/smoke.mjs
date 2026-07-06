@@ -40,6 +40,7 @@ async function page(path) {
 
 // ---------- routes ----------
 const PAGES_200 = ['/', '/pricing', '/for-gyms', '/for-workshops', '/demo', '/start', '/new', '/talk-to-us',
+  '/articles', '/articles/seven-app-problem',
   '/e/ie_demo1', '/c/harbor-city-runners', '/c/harbor-city-runners/evt_003',
   '/app', '/app/community', '/app/events', '/app/events/calendar', '/app/events/evt_001/checkin',
   '/app/events/evt_003/promote', '/app/intelligence', '/robots.txt', '/sitemap.xml', '/openapi.json'];
@@ -48,6 +49,7 @@ for (const p of PAGES_200) {
 }
 check('GET /e/nope → 404', (await page('/e/nope')) === 404);
 check('GET /app/community/nope → 404', (await page('/app/community/nope')) === 404);
+check('GET /articles/nope → 404', (await page('/articles/nope')) === 404);
 
 // ---------- demo API contract ----------
 {

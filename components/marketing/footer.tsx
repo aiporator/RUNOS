@@ -43,6 +43,9 @@ export default function MarketingFooter({ anchorPrefix = '' }: MarketingFooterPr
             <Link href={`${anchorPrefix}#faq`} className={colLink}>
               Privacy commitment
             </Link>
+            <Link href="/articles" className={colLink}>
+              Articles
+            </Link>
           </div>
           <div>
             <h4 className={colHead}>For</h4>
