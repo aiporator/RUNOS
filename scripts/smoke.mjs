@@ -39,7 +39,7 @@ async function page(path) {
 }
 
 // ---------- routes ----------
-const PAGES_200 = ['/', '/pricing', '/for-gyms', '/for-workshops', '/demo', '/start', '/new',
+const PAGES_200 = ['/', '/pricing', '/for-gyms', '/for-workshops', '/demo', '/start', '/new', '/talk-to-us',
   '/e/ie_demo1', '/c/harbor-city-runners', '/c/harbor-city-runners/evt_003',
   '/app', '/app/community', '/app/events', '/app/events/calendar', '/app/events/evt_001/checkin',
   '/app/events/evt_003/promote', '/app/intelligence', '/robots.txt', '/sitemap.xml', '/openapi.json'];
@@ -105,6 +105,28 @@ check('GET /app/community/nope → 404', (await page('/app/community/nope')) ===
 
   const leads = await post('/api/v1/leads', { org_name: 'Smoke Club', vertical: 'gym' }, { 'Content-Type': 'application/json' });
   check('lead captured (no auth)', leads.status === 201 && leads.body?.data?.status === 'captured');
+}
+
+// ---------- appointments (lead → booked call) ----------
+{
+  const slots = await get('/api/v1/appointments/slots');
+  check('appointment slots listed', slots.status === 200 && Array.isArray(slots.body?.data) && slots.body.data.length === 6);
+  const slot = slots.body?.data?.[0];
+
+  const unauth = await get('/api/v1/appointments');
+  check('appointments without auth → 401', unauth.status === 401);
+
+  const badEmail = await post('/api/v1/appointments', { name: 'Smoke', email: 'not-an-email' }, { 'Content-Type': 'application/json' });
+  check('appointment invalid email rejected', badEmail.status === 400);
+
+  const appt = await post('/api/v1/appointments', {
+    name: 'Smoke Partner', email: 'partner@smoke.dev', org_name: 'Smoke Club', vertical: 'running-club',
+    slot_iso: slot?.iso, slot_label: slot?.label, source: 'smoke_test',
+  }, { 'Content-Type': 'application/json' });
+  check('appointment requested (no auth)', appt.status === 201 && appt.body?.data?.status === 'requested');
+
+  const list = await get('/api/v1/appointments', AUTH);
+  check('appointments list (auth)', list.status === 200 && list.body?.data?.some((a) => a.email === 'partner@smoke.dev'));
 }
 
 console.log(`\nSmoke: ${passed} passed, ${failed} failed`);

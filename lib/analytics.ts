@@ -29,7 +29,8 @@ export function trackPageview(path: string): void {
  * Canonical funnel events — keep names stable, they feed the PostHog funnels:
  * demo_started, wizard_started, wizard_step_completed, wizard_completed,
  * lead_captured, event_published, promote_generated, promote_scheduled,
- * public_event_viewed, public_rsvp_submitted, pricing_viewed, cta_clicked
+ * public_event_viewed, public_rsvp_submitted, pricing_viewed, cta_clicked,
+ * appointment_requested
  */
 export function track(event: string, props?: Record<string, string | number | boolean>): void {
   if (!initialized) return;

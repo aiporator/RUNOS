@@ -619,9 +619,12 @@ export default function StartPage() {
               <Link href="/app" className={`group ${btnVolt}`}>
                 Open your workspace <span className={arr}>→</span>
               </Link>
-              <a href="mailto:start@aiporate.com?subject=White-glove%20migration" className={btnGhost}>
+              <Link
+                href={`/talk-to-us?org_name=${encodeURIComponent(state.orgName)}&vertical=${state.verticalId}&source=start_wizard`}
+                className={btnGhost}
+              >
                 Book white-glove migration
-              </a>
+              </Link>
             </div>
           </div>
         )}

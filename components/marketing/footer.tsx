@@ -76,7 +76,7 @@ export default function MarketingFooter({ anchorPrefix = '' }: MarketingFooterPr
             <Link href="/" className={colLink}>
               Careers
             </Link>
-            <Link href="/" className={colLink}>
+            <Link href="/talk-to-us" className={colLink}>
               Contact
             </Link>
           </div>

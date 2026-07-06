@@ -204,7 +204,7 @@ export default function PricingSection({ full = false }: PricingSectionProps) {
                   white-label mobile app, API access, SSO, SLA, dedicated CSM.
                 </p>
               </div>
-              <Link href="/app" className={`group ${btnDark}`}>
+              <Link href="/talk-to-us" className={`group ${btnDark}`}>
                 Talk to us <span className={arr}>→</span>
               </Link>
             </Reveal>

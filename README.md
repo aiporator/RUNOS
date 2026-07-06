@@ -23,12 +23,13 @@ npm install
 npm run dev          # http://localhost:3000
 npm run typecheck    # TypeScript strict — 0 errors
 npx next lint        # ESLint (core-web-vitals) — 0 errors
-npm run build        # production build — 51 routes
+npm run build        # production build — 55 routes
 npm start && npm run smoke   # smoke assertions against the running server
 ```
 
 **Key surfaces:** `/` marketing · `/demo` instant product tour · `/start` onboarding wizard ·
 `/new` 60-second event creator (real create → share → RSVP, no account) ·
+`/talk-to-us` book a real call slot (lead + appointment capture, no calendar dependency) ·
 `/app` full organizer OS (seeded demo) ·
 `/api/v1/*` REST API (`app/api/README.md`, OpenAPI at `/openapi.json`).
 
