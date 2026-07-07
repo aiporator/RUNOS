@@ -58,6 +58,24 @@ const config: VerticalPageConfig = {
       body: 'Coaches manage their own classes and rosters without touching billing, settings, or anything else.',
     },
   ],
+  howItWorks: {
+    heading: 'Live in under ten minutes. No migration project.',
+    body: 'You don\'t rebuild your gym in RunOS — you import what you have and let it run.',
+    steps: [
+      {
+        title: 'Import your class schedule and member list',
+        body: 'Paste your weekly timetable and a CSV of current members — no manual re-entry, no waiting on a migration team.',
+      },
+      {
+        title: 'Turn on autopay and QR check-in',
+        body: 'Connect Stripe for dues and packs, print or screen a QR code at the desk. Both are live the moment you flip them on.',
+      },
+      {
+        title: 'The rest runs itself',
+        body: 'Waitlists fill cancellations, reminders go out before class, and lapsed members get a nudge — automatically, every week, with nobody watching.',
+      },
+    ],
+  },
   calendar: {
     heading: 'Your schedule is the business. Treat it like one.',
     body: 'Gyms and studios live in the calendar, so RunOS starts there. Build your weekly timetable once and it publishes itself — bookings, waitlists, check-ins, and reminders wired to every slot.',

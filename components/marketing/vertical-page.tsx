@@ -55,6 +55,12 @@ export type VerticalPageConfig = {
   };
   /** Optional — renders a "browse by craft" band linking into /workshops/[type]. Workshops page only. */
   craftBrowse?: { heading: string; body: string };
+  /** Optional — a 3-step "how it works" walkthrough, tailored per vertical. */
+  howItWorks?: {
+    heading: string;
+    body: string;
+    steps: { title: string; body: string }[];
+  };
 };
 
 /* ------------------------------------------------------------------ */
@@ -132,6 +138,47 @@ function PainsSection({ config }: { config: VerticalPageConfig }) {
                 </h3>
                 <p className="text-[15px] leading-[1.65] text-muted">{pain.body}</p>
               </article>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* How it works — 3-step walkthrough                                   */
+/* ------------------------------------------------------------------ */
+
+function HowItWorksSection({ config }: { config: VerticalPageConfig }) {
+  if (!config.howItWorks) return null;
+  const { heading, body, steps } = config.howItWorks;
+  return (
+    <section className="bg-paper-2 py-[120px] text-ink">
+      <div className="mx-auto max-w-[1200px] px-6">
+        <Reveal className="mx-auto mb-[70px] max-w-[640px] text-center">
+          <span className={`${label} text-muted-dark`}>How it works</span>
+          <h2 className="mb-[18px] font-display text-[clamp(30px,4vw,52px)] font-semibold leading-[1.05] tracking-[-0.02em]">
+            {heading}
+          </h2>
+          <p className="text-muted-dark">{body}</p>
+        </Reveal>
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
+          {steps.map((step, i) => (
+            <Reveal
+              key={step.title}
+              delay={i === 0 ? undefined : (i as 1 | 2)}
+              className="relative"
+            >
+              <div className="mb-5 grid h-12 w-12 place-items-center rounded-full bg-ink font-display text-[17px] font-bold text-volt">
+                {i + 1}
+              </div>
+              <h3 className="mb-2.5 font-display text-[19px] font-semibold leading-[1.15] tracking-[-0.01em]">
+                {step.title}
+              </h3>
+              <p className="max-w-[36ch] text-[14.5px] leading-[1.65] text-muted-dark">
+                {step.body}
+              </p>
             </Reveal>
           ))}
         </div>
@@ -441,6 +488,7 @@ export default function VerticalPage({ config }: { config: VerticalPageConfig })
       <MarketingNav anchorPrefix="/" />
       <VerticalHero config={config} />
       <PainsSection config={config} />
+      <HowItWorksSection config={config} />
       <FeaturesSection config={config} />
       <CraftBrowseSection config={config} />
       <CalendarSection config={config} />

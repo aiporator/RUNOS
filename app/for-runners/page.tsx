@@ -11,6 +11,21 @@ export const metadata: Metadata = {
     'Discover open runs and clubs near you, RSVP in one tap with no account, and keep every run you\'ve joined in one place — your running life, not seven apps.',
 };
 
+const HOW_IT_WORKS: { title: string; body: string }[] = [
+  {
+    title: 'Browse what\'s actually happening',
+    body: 'Filter by city and type on Discover — every open run, class, and workshop published on RunOS, not whatever a search engine or a Facebook group happens to surface.',
+  },
+  {
+    title: 'RSVP in one tap, no account',
+    body: 'Name and email, done. You get a confirmation that works at the door — no password to create, no app to download first.',
+  },
+  {
+    title: 'It shows up on My Runs automatically',
+    body: 'Every run you join or host is remembered in your browser the moment you RSVP — one view across every club, not just the one with your email.',
+  },
+];
+
 const FEATURES: { title: string; body: string }[] = [
   {
     title: 'Discover, don\'t search',
@@ -57,6 +72,32 @@ export default function ForRunnersPage() {
           </div>
         </div>
       </header>
+
+      <section className="bg-paper-2 py-[100px] text-ink">
+        <div className="mx-auto max-w-[1000px] px-6">
+          <Reveal className="mx-auto mb-[60px] max-w-[560px] text-center">
+            <span className={`${label} text-muted-dark`}>How it works</span>
+            <h2 className="font-display text-[clamp(28px,3.6vw,44px)] font-semibold leading-[1.05] tracking-[-0.02em]">
+              Three taps between you and the start line.
+            </h2>
+          </Reveal>
+          <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
+            {HOW_IT_WORKS.map((step, i) => (
+              <Reveal key={step.title} delay={i === 0 ? undefined : (i as 1 | 2)}>
+                <div className="mb-5 grid h-12 w-12 place-items-center rounded-full bg-ink font-display text-[17px] font-bold text-volt">
+                  {i + 1}
+                </div>
+                <h3 className="mb-2.5 font-display text-[17px] font-semibold leading-[1.15] tracking-[-0.01em]">
+                  {step.title}
+                </h3>
+                <p className="max-w-[36ch] text-[14px] leading-[1.65] text-muted-dark">
+                  {step.body}
+                </p>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <section className="py-[90px]">
         <div className="mx-auto max-w-[1000px] px-6">

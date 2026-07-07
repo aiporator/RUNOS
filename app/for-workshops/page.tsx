@@ -66,6 +66,24 @@ const config: VerticalPageConfig = {
       body: 'A confirmed-minus-cancellations count as of this morning, not the sign-up sheet from three weeks ago — so you buy the clay you actually need.',
     },
   ],
+  howItWorks: {
+    heading: 'Publish a session. Everything else already exists.',
+    body: 'One page becomes the landing page, the ticket, the reminder, and the check-in — automatically, the moment it hits the calendar.',
+    steps: [
+      {
+        title: 'Publish your session or course series',
+        body: 'Title, date, capacity, price — one form. A single Töpferkurs or a six-week series works the same way.',
+      },
+      {
+        title: 'Share the one link you get',
+        body: "A landing page with ticketing built in exists the instant you publish — no page builder, no separate checkout to wire up.",
+      },
+      {
+        title: 'Show up to a room that filled itself',
+        body: "Waitlists backfill drops, reminders cut no-shows, and the headcount you see the morning-of is the one that's actually confirmed.",
+      },
+    ],
+  },
   calendar: {
     heading: 'The calendar is the product. Fill it once, sell it forever.',
     body: 'Workshops live and die by the schedule, so RunOS starts there. Publish a session or a whole course series and everything downstream — landing page, tickets, waitlist, reminders — exists the moment it hits the calendar.',
