@@ -6,6 +6,8 @@ import { formatDate, formatDateTime, money, pct, relativeDays } from '@/lib/util
 import { Avatar, Badge, Card, CardTitle, KV, ProgressBar } from '@/components/ui';
 import type { EventStatus, EventType } from '@/lib/types';
 
+export const dynamic = 'force-dynamic';
+
 const typeTone: Record<EventType, 'volt' | 'info' | 'warn' | 'ok' | 'muted'> = {
   'long-run': 'volt',
   track: 'info',
@@ -51,7 +53,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   const event = getEvent(id);
   if (!event) notFound();
 
-  const regs = registrations.filter((r) => r.eventId === event.id);
+  const regs = registrations().filter((r) => r.eventId === event.id);
   const waiversSigned = regs.filter((r) => r.waiverSigned).length;
   const roster = regs
     .slice(0, 12)
@@ -77,7 +79,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
         </div>
         <div className="flex items-center gap-3">
           <Link
-            href="#"
+            href={`/app/events/${event.id}/edit`}
             className="rounded-full border border-line px-5 py-2.5 font-display text-sm font-semibold text-paper transition hover:border-volt/40"
           >
             Edit

@@ -3,20 +3,24 @@ import { UserPlus } from 'lucide-react';
 import { ambassadorCandidates, atRiskMembers, club, members, newMembers } from '@/lib/data';
 import { pct } from '@/lib/utils';
 import { Avatar, Card, CardTitle, PageHeader, Stat } from '@/components/ui';
+import { QuickActionButton } from '@/components/quick-action';
 import { MembersTable } from './members-table';
 
+export const dynamic = 'force-dynamic';
+
 export default function CommunityPage() {
-  const total = club.memberCount;
-  const active = members.filter((m) => m.status === 'active').length;
+  const allMembers = members();
+  const total = club().memberCount;
+  const active = allMembers.filter((m) => m.status === 'active').length;
   const joined = newMembers();
-  const ambassadors = members.filter((m) => m.roles.includes('ambassador'));
+  const ambassadors = allMembers.filter((m) => m.roles.includes('ambassador'));
   const candidates = ambassadorCandidates();
 
   const segments = [
-    { label: 'Streak-holders', count: members.filter((m) => m.tags.includes('streak-holder')).length },
-    { label: 'First-timer follow-up', count: members.filter((m) => m.tags.includes('first-timer-followup')).length },
+    { label: 'Streak-holders', count: allMembers.filter((m) => m.tags.includes('streak-holder')).length },
+    { label: 'First-timer follow-up', count: allMembers.filter((m) => m.tags.includes('first-timer-followup')).length },
     { label: 'Quietly drifting', count: atRiskMembers().length },
-    { label: 'Volunteers', count: members.filter((m) => m.roles.includes('volunteer')).length },
+    { label: 'Volunteers', count: allMembers.filter((m) => m.roles.includes('volunteer')).length },
     { label: 'Ambassador candidates', count: candidates.length },
   ];
 
@@ -27,13 +31,24 @@ export default function CommunityPage() {
         title="Members"
         sub={`${total} members · ${active} active · ${joined.length} joined this month · every runner, one profile.`}
         actions={
-          <button
-            type="button"
+          <QuickActionButton
+            label={
+              <>
+                <UserPlus className="h-4 w-4" aria-hidden />
+                Invite members
+              </>
+            }
             className="inline-flex items-center gap-2 rounded-full bg-volt px-5 py-2.5 font-display text-sm font-semibold text-ink transition hover:shadow-[0_8px_28px_rgba(205,251,80,0.35)]"
-          >
-            <UserPlus className="h-4 w-4" aria-hidden />
-            Invite members
-          </button>
+            title="Invite a member"
+            description="Adds them to the directory immediately — they show up in segments and journeys right away."
+            endpoint="/api/v1/members"
+            fields={[
+              { name: 'name', label: 'Name', required: true, placeholder: 'Jonas Weber' },
+              { name: 'email', label: 'Email', type: 'email', required: true, placeholder: 'jonas@example.com' },
+              { name: 'city', label: 'Chapter', type: 'select', options: club().chapters, defaultValue: club().chapters[0] },
+            ]}
+            submitLabel="Invite"
+          />
         }
       />
 
@@ -48,7 +63,7 @@ export default function CommunityPage() {
         <CardTitle action={<span className="text-[12px] text-muted">click a row to open the profile</span>}>
           Member directory
         </CardTitle>
-        <MembersTable members={members} />
+        <MembersTable members={allMembers} />
       </Card>
 
       <div className="mt-6 grid gap-4 xl:grid-cols-2">

@@ -1,9 +1,12 @@
 import { notFound } from 'next/navigation';
 import { MessageSquare, NotebookPen } from 'lucide-react';
-import { getMember, payments } from '@/lib/data';
+import { getMember, memberNotes, payments } from '@/lib/data';
 import type { ConsentScope, MemberStatus } from '@/lib/types';
-import { formatDate, money, pct, relativeDays } from '@/lib/utils';
+import { formatDate, formatDateTime, money, pct, relativeDays } from '@/lib/utils';
 import { Avatar, Badge, Card, CardTitle, KV, PageHeader, ProgressBar } from '@/components/ui';
+import { QuickActionButton } from '@/components/quick-action';
+
+export const dynamic = 'force-dynamic';
 
 const consentScopes: Array<{ scope: ConsentScope; label: string; description: string }> = [
   { scope: 'profile.basic', label: 'The basics', description: 'Name, photo, and club profile — visible to other members in the app.' },
@@ -37,9 +40,10 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
   const member = getMember(id);
   if (!member) notFound();
 
-  const memberPayments = payments.filter((p) => p.memberId === member.id && p.status === 'succeeded');
+  const memberPayments = payments().filter((p) => p.memberId === member.id && p.status === 'succeeded');
   const spent = memberPayments.reduce((s, p) => s + p.amount, 0);
   const riskTone = member.churnRisk > 0.7 ? 'danger' : member.churnRisk > 0.4 ? 'warn' : 'ok';
+  const notes = memberNotes(member.id);
 
   return (
     <div>
@@ -49,20 +53,36 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
         sub={`Member since ${formatDate(member.joinedAt)} · ${member.city} · last seen ${relativeDays(member.lastSeen)}`}
         actions={
           <>
-            <button
-              type="button"
+            <QuickActionButton
+              label={
+                <>
+                  <NotebookPen className="h-4 w-4" aria-hidden />
+                  Add note
+                </>
+              }
               className="inline-flex items-center gap-2 rounded-full border border-line bg-bg-3 px-4 py-2.5 font-display text-sm font-semibold text-paper transition hover:border-volt/40"
-            >
-              <NotebookPen className="h-4 w-4" aria-hidden />
-              Add note
-            </button>
-            <button
-              type="button"
+              title={`Add a note on ${member.name}`}
+              description="Internal only — never visible to the member."
+              endpoint={`/api/v1/members/${member.id}/notes`}
+              fields={[{ name: 'body', label: 'Note', type: 'textarea', required: true, placeholder: 'Mentioned a sore knee after Saturday’s long run.' }]}
+              extraBody={{ kind: 'note' }}
+              submitLabel="Save note"
+            />
+            <QuickActionButton
+              label={
+                <>
+                  <MessageSquare className="h-4 w-4" aria-hidden />
+                  Message
+                </>
+              }
               className="inline-flex items-center gap-2 rounded-full bg-volt px-5 py-2.5 font-display text-sm font-semibold text-ink transition hover:shadow-[0_8px_28px_rgba(205,251,80,0.35)]"
-            >
-              <MessageSquare className="h-4 w-4" aria-hidden />
-              Message
-            </button>
+              title={`Message ${member.name}`}
+              description={`Logged to this profile and sent to ${member.email}.`}
+              endpoint={`/api/v1/members/${member.id}/notes`}
+              fields={[{ name: 'body', label: 'Message', type: 'textarea', required: true, placeholder: 'Hey! Haven’t seen you at a run in a bit — everything okay?' }]}
+              extraBody={{ kind: 'message' }}
+              submitLabel="Send"
+            />
           </>
         }
       />
@@ -200,6 +220,29 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
             Perk redemptions land here too — benefits-passport usage is one of the strongest retention signals we
             track for this member.
           </p>
+        </Card>
+
+        <Card className="fade-up-4 xl:col-span-3">
+          <CardTitle action={<span className="text-[12px] text-muted">{notes.length} logged</span>}>
+            Notes &amp; messages
+          </CardTitle>
+          {notes.length === 0 ? (
+            <p className="text-[12.5px] text-muted-2">
+              Nothing logged yet — notes and messages sent from this profile show up here.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {notes.map((n) => (
+                <div key={n.id} className="rounded-xl border border-line bg-bg-3 px-4 py-3.5">
+                  <div className="mb-1.5 flex items-center justify-between gap-3">
+                    <Badge tone={n.kind === 'message' ? 'volt' : 'muted'}>{n.kind}</Badge>
+                    <span className="text-[11.5px] text-muted-2">{formatDateTime(n.at)}</span>
+                  </div>
+                  <p className="text-[13px] leading-relaxed text-paper/90">{n.body}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </Card>
       </div>
     </div>

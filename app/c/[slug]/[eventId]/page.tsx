@@ -9,6 +9,8 @@ import type { EventType } from '@/lib/types';
 import RsvpForm from '../../rsvp-form';
 import PoweredByBanner from '../../powered-by';
 
+export const dynamic = 'force-dynamic';
+
 const typeTone: Record<EventType, 'volt' | 'info' | 'warn' | 'ok' | 'muted'> = {
   'long-run': 'volt',
   track: 'info',
@@ -60,7 +62,7 @@ export default async function PublicEventPage({
         <div className="mx-auto flex max-w-[960px] items-center justify-between px-6 py-4">
           <Link href={`/c/${slug}`} className="flex items-center gap-2.5">
             <span className="pulse-dot h-2.5 w-2.5 rounded-full bg-volt shadow-[0_0_12px_#cdfb50]" />
-            <span className="font-display text-[16px] font-bold tracking-tight">{club.name}</span>
+            <span className="font-display text-[16px] font-bold tracking-tight">{club().name}</span>
           </Link>
           <Link href={`/c/${slug}`} className="text-[13px] font-semibold text-muted transition hover:text-volt">
             All events →
@@ -180,7 +182,7 @@ export default async function PublicEventPage({
       </main>
 
       <footer className="border-t border-line py-8 text-center text-[12.5px] text-muted-2">
-        © 2026 {club.name} · Hosted on RunOS
+        © 2026 {club().name} · Hosted on RunOS
       </footer>
     </div>
   );

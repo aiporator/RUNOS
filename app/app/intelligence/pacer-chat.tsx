@@ -30,7 +30,7 @@ const now = weeklyMetrics[weeklyMetrics.length - 1];
 const REPLIES: Record<'plan' | 'risk' | 'sponsor' | 'revenue' | 'fallback', PacerReply> = {
   plan: {
     text:
-      `Here's my October draft for ${club.name}:\n\n` +
+      `Here's my October draft for ${club().name}:\n\n` +
       `• 4 Saturday long runs — Oct 3, 10, 17 & 24, rotating Harbor Loop 16K and Canal Ring 14K\n` +
       `• 10K Time Trial — Oct 18, chip-timed, capacity 120\n` +
       `• Halloween Social Run — Oct 30, easy 5K in costume, Dock 7 afterparty\n\n` +
@@ -53,8 +53,8 @@ const REPLIES: Record<'plan' | 'risk' | 'sponsor' | 'revenue' | 'fallback', Pace
   },
   sponsor: {
     text:
-      `Draft sponsor proposal — ${club.name}:\n\n` +
-      `Verified numbers: ${club.memberCount} members, 71% monthly active, 38 events last quarter, ` +
+      `Draft sponsor proposal — ${club().name}:\n\n` +
+      `Verified numbers: ${club().memberCount} members, 71% monthly active, 38 events last quarter, ` +
       `${totalPerkRedemptions()} perk redemptions all-time.\n\n` +
       `• Community — €1,500/yr: logo on all event pages + one perk slot\n` +
       `• Partner — €4,000/yr: above + demo activations at 2 events + newsletter feature\n` +
@@ -74,7 +74,7 @@ const REPLIES: Record<'plan' | 'risk' | 'sponsor' | 'revenue' | 'fallback', Pace
   },
   fallback: {
     text:
-      `Here's what I found across your club's data: ${club.memberCount} members, with ${now.wacm} active this week — a record. ` +
+      `Here's what I found across your club's data: ${club().memberCount} members, with ${now.wacm} active this week — a record. ` +
       `MRR is ${money(currentMrr)}, and the 10K Time Trial is at 87/120 registered, pacing to sell out around Jul 12. ` +
       `Ask me to plan a month, forecast revenue, draft a sponsor proposal, or dig into any member or event.`,
   },

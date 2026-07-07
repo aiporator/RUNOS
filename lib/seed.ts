@@ -1,8 +1,8 @@
 // Deterministic seed data for the demo club "Harbor City Runners".
 // All dates are relative to a fixed "today" so the demo always looks live.
 import type {
-  ActivityItem, Challenge, Club, ClubEvent, Journey, Member, MembershipPlan,
-  Payment, Perk, Registration, Sponsor, Vendor, WeeklyMetric,
+  ActivityItem, Challenge, Club, ClubEvent, Integration, Journey, Member, MembershipPlan,
+  Payment, Perk, Registration, Sponsor, StaffMember, Vendor, WeeklyMetric,
 } from './types';
 
 export const TODAY = new Date('2026-07-02T08:00:00Z');
@@ -36,7 +36,36 @@ export const club: Club = {
   memberCount: 48,
   plan: 'pro',
   chapters: ['Harbor City — Central', 'Harbor City — North'],
+  ownerEmail: 'maya@harborcityrunners.run',
+  apiKey: 'ros_live_a1b2c3d4e5f67f2a',
+  status: 'active',
+  deletionScheduledAt: null,
 };
+
+export const staff: StaffMember[] = [
+  { id: 'stf_1', name: 'Maya Okafor', email: 'maya@harborcityrunners.run', roles: ['Owner'], color: '#cdfb50', lastActive: 'today', status: 'active' },
+  { id: 'stf_2', name: 'Priya Sharma', email: 'priya@harborcityrunners.run', roles: ['Organizer', 'Coach'], color: '#7db8ff', lastActive: 'today', status: 'active' },
+  { id: 'stf_3', name: 'Sofia Lindqvist', email: 'sofia@harborcityrunners.run', roles: ['Content'], color: '#ff9d7a', lastActive: 'yesterday', status: 'active' },
+  { id: 'stf_4', name: 'Ravi Patel', email: 'ravi@harborcityrunners.run', roles: ['Volunteer-coordinator'], color: '#b78bff', lastActive: '3d ago', status: 'active' },
+];
+
+export const integrations: Integration[] = [
+  { id: 'int_strava', name: 'Strava', detail: '34 members syncing', connected: true },
+  { id: 'int_garmin', name: 'Garmin', detail: '12 members syncing', connected: true },
+  { id: 'int_apple_health', name: 'Apple Health', detail: '9 members syncing', connected: true },
+  { id: 'int_coros', name: 'COROS', detail: 'Activity sync', connected: false },
+  { id: 'int_polar', name: 'Polar', detail: 'Activity sync', connected: false },
+  { id: 'int_suunto', name: 'Suunto', detail: 'Activity sync', connected: false },
+  { id: 'int_fitbit', name: 'Fitbit', detail: 'Activity sync', connected: false },
+  { id: 'int_trainingpeaks', name: 'TrainingPeaks', detail: 'Training plans', connected: false },
+  { id: 'int_zwift', name: 'Zwift', detail: 'Indoor sessions', connected: false },
+  { id: 'int_stripe', name: 'Stripe', detail: 'Payouts daily', connected: true },
+  { id: 'int_shopify', name: 'Shopify', detail: 'Merch storefront', connected: false },
+  { id: 'int_whatsapp', name: 'WhatsApp', detail: 'Announcements bridge', connected: true },
+  { id: 'int_mailchimp', name: 'Mailchimp', detail: 'Email campaigns', connected: false },
+  { id: 'int_slack', name: 'Slack', detail: 'Organizer alerts', connected: false },
+  { id: 'int_discord', name: 'Discord', detail: 'Community server', connected: false },
+];
 
 const firstNames = ['Maya', 'Leo', 'Priya', 'Emre', 'Sofia', 'Jonas', 'Amara', 'Tomas', 'Ines', 'Ravi', 'Freya', 'Marco', 'Yuki', 'Nadia', 'Owen', 'Lena', 'Kofi', 'Elif', 'Bram', 'Zoe', 'Hugo', 'Alba', 'Niko', 'Sara', 'Femke', 'Diego', 'Anouk', 'Mateo', 'Livia', 'Casper', 'Noor', 'Ilya', 'Greta', 'Sam', 'Dara', 'Rosa', 'Finn', 'Aiko', 'Jules', 'Mira', 'Otis', 'Vera', 'Karl', 'Tessa', 'Omar', 'Ida', 'Ben', 'Luna'];
 const lastNames = ['Okafor', 'Martins', 'Sharma', 'Kaya', 'Lindqvist', 'Visser', 'Ndiaye', 'Novak', 'Costa', 'Patel', 'Berg', 'Ricci', 'Tanaka', 'Haddad', 'Doyle', 'Fischer', 'Mensah', 'Demir', 'de Vries', 'Klein', 'Moreau', 'Serra', 'Laine', 'Haas', 'Bakker', 'Vega', 'Smit', 'Rojas', 'Conti', 'Jansen', 'Aziz', 'Petrov', 'Weber', 'Brook', 'Behan', 'Marin', 'Kelly', 'Mori', 'Blanc', 'Rao', 'Green', 'Lang', 'Voss', 'Peeters', 'Farsi', 'Holm', 'Carter', 'Reyes'];

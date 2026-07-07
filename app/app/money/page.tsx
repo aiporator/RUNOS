@@ -4,18 +4,22 @@ import {
 } from '@/lib/data';
 import { money } from '@/lib/utils';
 import { Badge, Card, CardTitle, KV, PageHeader, Stat } from '@/components/ui';
+import { QuickActionButton } from '@/components/quick-action';
 import { PaymentsTable, type PaymentRow } from './payments-table';
 
+export const dynamic = 'force-dynamic';
+
 export default function MoneyPage() {
+  const allPayments = payments();
   const failed = failedPayments();
-  const feesThisMonth = payments
+  const feesThisMonth = allPayments
     .filter((p) => p.status === 'succeeded')
     .reduce((s, p) => s + p.fee, 0);
 
   const monthlyPlan = membershipPlans.find((p) => p.interval === 'month');
   const annualPlan = membershipPlans.find((p) => p.interval === 'year');
 
-  const rows: PaymentRow[] = [...payments]
+  const rows: PaymentRow[] = [...allPayments]
     .sort((a, b) => b.date.localeCompare(a.date))
     .map((p) => {
       const m = getMember(p.memberId);
@@ -38,12 +42,20 @@ export default function MoneyPage() {
         title="Money"
         sub="Memberships, payments, and payouts — one ledger."
         actions={
-          <button
-            type="button"
+          <QuickActionButton
+            label="Create payment link"
             className="rounded-full bg-volt px-5 py-2.5 font-display text-sm font-semibold text-ink transition hover:shadow-[0_8px_28px_rgba(205,251,80,0.35)]"
-          >
-            Create payment link
-          </button>
+            title="Create a payment link"
+            description="Charges immediately through Stripe and lands in the ledger below — share the confirmation with the member."
+            endpoint="/api/v1/payments"
+            fields={[
+              { name: 'member_id', label: 'Member ID', required: true, placeholder: 'mem_001' },
+              { name: 'kind', label: 'Kind', type: 'select', options: ['membership', 'ticket', 'merch', 'marketplace'], defaultValue: 'ticket' },
+              { name: 'description', label: 'Description', required: true, placeholder: 'Race-weekend hotel add-on' },
+              { name: 'amount', label: 'Amount (USD)', type: 'number', required: true, placeholder: '45' },
+            ]}
+            submitLabel="Create & charge"
+          />
         }
       />
 

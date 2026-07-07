@@ -2,6 +2,9 @@ import { Check, Plus } from 'lucide-react';
 import { journeys, members } from '@/lib/data';
 import { cn, pct } from '@/lib/utils';
 import { Avatar, Badge, Card, CardTitle, PageHeader, ProgressBar, Stat, Table } from '@/components/ui';
+import { QuickActionButton } from '@/components/quick-action';
+
+export const dynamic = 'force-dynamic';
 
 const statusTone: Record<string, 'ok' | 'warn' | 'muted'> = {
   active: 'ok',
@@ -34,9 +37,10 @@ const topReferrers: { memberIndex: number; referred: number }[] = [
 ];
 
 export default function GrowthPage() {
-  const active = journeys.filter((j) => j.status === 'active');
-  const enrolledNow = journeys.reduce((s, j) => s + j.enrolled, 0);
-  const avgConversion = journeys.reduce((s, j) => s + j.conversionRate, 0) / journeys.length;
+  const allJourneys = journeys();
+  const active = allJourneys.filter((j) => j.status === 'active');
+  const enrolledNow = allJourneys.reduce((s, j) => s + j.enrolled, 0);
+  const avgConversion = allJourneys.reduce((s, j) => s + j.conversionRate, 0) / allJourneys.length;
 
   return (
     <div>
@@ -44,14 +48,28 @@ export default function GrowthPage() {
         title="Growth"
         sub="Journeys, campaigns, and the referral engine — set it once, it runs weekly."
         actions={
-          <button className="inline-flex items-center gap-1.5 rounded-full bg-volt px-5 py-2.5 font-display text-sm font-semibold text-ink transition hover:shadow-[0_8px_28px_rgba(205,251,80,0.35)]">
-            <Plus size={16} strokeWidth={2.5} /> New journey
-          </button>
+          <QuickActionButton
+            label={
+              <>
+                <Plus size={16} strokeWidth={2.5} /> New journey
+              </>
+            }
+            className="inline-flex items-center gap-1.5 rounded-full bg-volt px-5 py-2.5 font-display text-sm font-semibold text-ink transition hover:shadow-[0_8px_28px_rgba(205,251,80,0.35)]"
+            title="New journey"
+            description="Starts as a draft — turn it on once the trigger and steps look right."
+            endpoint="/api/v1/journeys"
+            fields={[
+              { name: 'name', label: 'Name', required: true, placeholder: 'Winter re-engagement' },
+              { name: 'trigger', label: 'Trigger', required: true, placeholder: 'no_show_2_weeks' },
+              { name: 'conversionGoal', label: 'Goal', required: true, placeholder: 'Attends a run within 14 days' },
+            ]}
+            submitLabel="Create journey"
+          />
         }
       />
 
       <div className="grid gap-4 fade-up-1 sm:grid-cols-2 xl:grid-cols-4">
-        <Stat label="Active journeys" value={String(active.length)} sub={`of ${journeys.length} total · 1 paused`} />
+        <Stat label="Active journeys" value={String(active.length)} sub={`of ${allJourneys.length} total · 1 paused`} />
         <Stat label="Members enrolled now" value={String(enrolledNow)} delta="+31 this week" sub="across all running journeys" />
         <Stat label="Avg conversion rate" value={pct(avgConversion)} delta="+4 pts q/q" sub="goal completion, all journeys" />
         <Stat label="Messages sent this month" value="1,284" sub="email · SMS · push — 0 spam reports" />
@@ -60,7 +78,7 @@ export default function GrowthPage() {
       <Card className="mt-6 fade-up-2">
         <CardTitle action={<span className="text-[12px] text-muted">automated · runs weekly</span>}>Journeys</CardTitle>
         <Table head={['Name', 'Trigger', 'Steps', 'Enrolled now', 'Completed', 'Goal', 'Conversion', 'Status']}>
-          {journeys.map((j) => (
+          {allJourneys.map((j) => (
             <tr key={j.id} className="transition hover:bg-white/3">
               <td className="py-3.5 pr-4 font-medium">{j.name}</td>
               <td className="py-3.5 pr-4">
@@ -140,7 +158,7 @@ export default function GrowthPage() {
           <div className="mt-5 space-y-3 border-t border-line pt-4">
             <div className="text-[12px] font-semibold uppercase tracking-wide text-muted-2">Top referrers</div>
             {topReferrers.map(({ memberIndex, referred }) => {
-              const m = members[memberIndex];
+              const m = members()[memberIndex];
               return (
                 <div key={m.id} className="flex items-center gap-3">
                   <Avatar name={m.name} color={m.avatarColor} size={34} />

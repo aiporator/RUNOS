@@ -5,7 +5,9 @@
 // (see docs/03-architecture/database-schema.md).
 import {
   challenges as seedChallenges,
+  club as seedClub,
   events as seedEvents,
+  integrations as seedIntegrations,
   journeys as seedJourneys,
   members as seedMembers,
   membershipPlans as seedMembershipPlans,
@@ -13,23 +15,28 @@ import {
   perks as seedPerks,
   registrations as seedRegistrations,
   sponsors as seedSponsors,
+  staff as seedStaff,
   weeklyMetrics as seedWeeklyMetrics,
   TODAY,
 } from './seed';
 import type {
   Challenge,
+  Club,
   ClubEvent,
   ConsentScope,
   EventStatus,
   EventType,
+  Integration,
   Journey,
   Member,
+  MemberNote,
   MemberStatus,
   Payment,
   PaymentKind,
   Perk,
   Registration,
   Sponsor,
+  StaffMember,
   WeeklyMetric,
 } from './types';
 
@@ -126,6 +133,33 @@ export interface CreatePaymentInput {
   amount: number;
 }
 
+export interface CreateJourneyInput {
+  name: string;
+  trigger: string;
+  conversionGoal: string;
+}
+
+export interface CreateChallengeInput {
+  name: string;
+  metric: string;
+  target: number;
+  unit: string;
+  endsAt: string;
+}
+
+export interface CreateSponsorInput {
+  name: string;
+  industry: string;
+  contact: string;
+  dealValue: number;
+}
+
+export interface InviteStaffInput {
+  name: string;
+  email: string;
+  roles: string[];
+}
+
 export type RegistrationResult =
   | { kind: 'registered'; registration: Registration; event: ClubEvent }
   | { kind: 'waitlisted'; position: number; event: ClubEvent }
@@ -186,6 +220,10 @@ interface StoreState {
   weeklyMetrics: WeeklyMetric[];
   redemptions: PerkRedemption[];
   auditLog: AuditEntry[];
+  club: Club;
+  staff: StaffMember[];
+  integrations: Integration[];
+  memberNotes: MemberNote[];
   counters: Record<string, number>;
   auditSeq: number;
 }
@@ -216,7 +254,25 @@ export interface RunosStore {
   redeemPerk(perkId: string, memberId: string): RedeemResult;
   // engage
   listChallenges(): Challenge[];
+  createChallenge(input: CreateChallengeInput): Challenge;
   listJourneys(): Journey[];
+  createJourney(input: CreateJourneyInput): Journey;
+  createSponsor(input: CreateSponsorInput): Sponsor;
+  // member notes & messages
+  listMemberNotes(memberId: string): MemberNote[];
+  addMemberNote(memberId: string, kind: MemberNote['kind'], body: string): MemberNote | undefined;
+  // platform — club settings, staff, integrations
+  getClub(): Club;
+  addChapter(name: string): Club;
+  rotateApiKey(): Club;
+  transferOwnership(email: string): Club;
+  scheduleDeactivation(): Club;
+  cancelDeactivation(): Club;
+  exportData(): Record<string, unknown>;
+  listStaff(): StaffMember[];
+  inviteStaff(input: InviteStaffInput): StaffMember;
+  listIntegrations(): Integration[];
+  toggleIntegration(id: string): Integration | undefined;
   // analytics & audit
   metrics(): Metrics;
   listAudit(): AuditEntry[];
@@ -240,6 +296,10 @@ function createStore(): RunosStore {
     weeklyMetrics: deepCopy(seedWeeklyMetrics),
     redemptions: [],
     auditLog: [],
+    club: deepCopy(seedClub),
+    staff: deepCopy(seedStaff),
+    integrations: deepCopy(seedIntegrations),
+    memberNotes: [],
     counters: {
       mem: seedMembers.length,
       evt: seedEvents.length,
@@ -247,6 +307,11 @@ function createStore(): RunosStore {
       pay: seedPayments.length,
       prx: 0,
       aud: 0,
+      jrn: seedJourneys.length,
+      chl: seedChallenges.length,
+      spo: seedSponsors.length,
+      stf: seedStaff.length,
+      note: 0,
     },
     auditSeq: 0,
   };
@@ -517,8 +582,186 @@ function createStore(): RunosStore {
       return state.challenges;
     },
 
+    createChallenge(input: CreateChallengeInput): Challenge {
+      const id = nextId('chl');
+      const challenge: Challenge = {
+        id,
+        name: input.name,
+        metric: input.metric,
+        target: input.target,
+        unit: input.unit,
+        endsAt: input.endsAt,
+        participants: 0,
+        leaders: [],
+      };
+      state.challenges.push(challenge);
+      recordAudit('challenge.created', id);
+      return challenge;
+    },
+
     listJourneys(): Journey[] {
       return state.journeys;
+    },
+
+    createJourney(input: CreateJourneyInput): Journey {
+      const id = nextId('jrn');
+      const journey: Journey = {
+        id,
+        name: input.name,
+        trigger: input.trigger,
+        status: 'draft',
+        steps: 1,
+        enrolled: 0,
+        completed: 0,
+        conversionGoal: input.conversionGoal,
+        conversionRate: 0,
+      };
+      state.journeys.push(journey);
+      recordAudit('journey.created', id);
+      return journey;
+    },
+
+    createSponsor(input: CreateSponsorInput): Sponsor {
+      const id = nextId('spo');
+      const sponsor: Sponsor = {
+        id,
+        name: input.name,
+        industry: input.industry,
+        contact: input.contact,
+        stage: 'lead',
+        dealValue: input.dealValue,
+        nextStep: 'Qualify audience fit',
+        lastTouch: new Date().toISOString(),
+        logoHue: (input.name.charCodeAt(0) * 37) % 360,
+      };
+      state.sponsors.push(sponsor);
+      recordAudit('sponsor.created', id);
+      return sponsor;
+    },
+
+    // -- member notes & messages ------------------------------------------------
+    listMemberNotes(memberId: string): MemberNote[] {
+      return state.memberNotes
+        .filter((n) => n.memberId === memberId)
+        .sort((a, b) => b.at.localeCompare(a.at));
+    },
+
+    addMemberNote(memberId: string, kind: MemberNote['kind'], body: string): MemberNote | undefined {
+      const member = state.members.find((m) => m.id === memberId);
+      if (!member) return undefined;
+      const note: MemberNote = {
+        id: nextId('note'),
+        memberId,
+        kind,
+        body,
+        at: new Date().toISOString(),
+      };
+      state.memberNotes.push(note);
+      recordAudit(kind === 'note' ? 'member.note_added' : 'member.messaged', memberId);
+      return note;
+    },
+
+    // -- platform: club settings, staff, integrations ----------------------------
+    getClub(): Club {
+      return state.club;
+    },
+
+    addChapter(name: string): Club {
+      state.club.chapters.push(name);
+      recordAudit('club.chapter_added', state.club.id);
+      return state.club;
+    },
+
+    rotateApiKey(): Club {
+      const suffix = Math.random().toString(36).slice(2, 10);
+      state.club.apiKey = `ros_live_${suffix}`;
+      recordAudit('club.api_key_rotated', state.club.id);
+      return state.club;
+    },
+
+    transferOwnership(email: string): Club {
+      const previousOwner = state.staff.find((s) => s.roles.includes('Owner'));
+      if (previousOwner) {
+        previousOwner.roles = previousOwner.roles.filter((r) => r !== 'Owner').concat('Organizer');
+      }
+      let newOwner = state.staff.find((s) => s.email.toLowerCase() === email.toLowerCase());
+      if (newOwner) {
+        if (!newOwner.roles.includes('Owner')) newOwner.roles = ['Owner', ...newOwner.roles];
+      } else {
+        newOwner = {
+          id: nextId('stf'),
+          name: email.split('@')[0],
+          email,
+          roles: ['Owner'],
+          color: AVATAR_COLORS[state.staff.length % AVATAR_COLORS.length],
+          lastActive: 'just now',
+          status: 'invited',
+        };
+        state.staff.push(newOwner);
+      }
+      state.club.ownerEmail = email;
+      recordAudit('club.ownership_transferred', state.club.id);
+      return state.club;
+    },
+
+    scheduleDeactivation(): Club {
+      const d = new Date(TODAY.getTime() + state.auditSeq * 1000);
+      d.setUTCDate(d.getUTCDate() + 30);
+      state.club.status = 'pending_deletion';
+      state.club.deletionScheduledAt = d.toISOString();
+      recordAudit('club.deactivation_scheduled', state.club.id);
+      return state.club;
+    },
+
+    cancelDeactivation(): Club {
+      state.club.status = 'active';
+      state.club.deletionScheduledAt = null;
+      recordAudit('club.deactivation_cancelled', state.club.id);
+      return state.club;
+    },
+
+    exportData(): Record<string, unknown> {
+      recordAudit('club.data_exported', state.club.id);
+      return {
+        club: state.club,
+        members: state.members,
+        events: state.events,
+        registrations: state.registrations,
+        payments: state.payments,
+        sponsors: state.sponsors,
+        exportedAt: new Date().toISOString(),
+      };
+    },
+
+    listStaff(): StaffMember[] {
+      return state.staff;
+    },
+
+    inviteStaff(input: InviteStaffInput): StaffMember {
+      const member: StaffMember = {
+        id: nextId('stf'),
+        name: input.name,
+        email: input.email,
+        roles: input.roles.length > 0 ? input.roles : ['Organizer'],
+        color: AVATAR_COLORS[state.staff.length % AVATAR_COLORS.length],
+        lastActive: 'invited',
+        status: 'invited',
+      };
+      state.staff.push(member);
+      recordAudit('staff.invited', member.id);
+      return member;
+    },
+
+    listIntegrations(): Integration[] {
+      return state.integrations;
+    },
+
+    toggleIntegration(id: string): Integration | undefined {
+      const integration = state.integrations.find((i) => i.id === id);
+      if (!integration) return undefined;
+      integration.connected = !integration.connected;
+      recordAudit(integration.connected ? 'integration.connected' : 'integration.disconnected', id);
+      return integration;
     },
 
     // -- analytics & audit ------------------------------------------------------

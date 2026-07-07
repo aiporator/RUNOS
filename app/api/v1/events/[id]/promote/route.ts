@@ -14,6 +14,6 @@ export async function GET(req: Request, ctx: Ctx): Promise<Response> {
   const { id } = await ctx.params;
   const event = getStore().getEvent(id);
   if (!event) return err(404, 'not_found', `No event with id ${id}.`);
-  const posts = generatePosts(event, club.name);
+  const posts = generatePosts(event, club().name);
   return ok(posts, { total: posts.length, event_id: event.id });
 }

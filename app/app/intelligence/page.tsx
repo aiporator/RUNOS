@@ -7,6 +7,8 @@ import { Avatar, Badge, Card, CardTitle, PageHeader, Stat } from '@/components/u
 import { RevenueChart, WacmAttendanceChart } from './charts';
 import { PacerChat } from './pacer-chat';
 
+export const dynamic = 'force-dynamic';
+
 const benchmarks: { label: string; you: string; median: string; badge: string; tone: 'ok' | 'volt' }[] = [
   { label: 'Retention (12-month)', you: '84%', median: '71% median', badge: 'top quartile', tone: 'ok' },
   { label: 'Event fill rate', you: '73%', median: '68% median', badge: '+5 pts', tone: 'volt' },

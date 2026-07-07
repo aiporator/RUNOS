@@ -3,11 +3,16 @@ import { Coffee, Trophy } from 'lucide-react';
 import { challenges, getMember, members, perks, totalPerkRedemptions } from '@/lib/data';
 import { pct, relativeDays } from '@/lib/utils';
 import { Avatar, Badge, Card, CardTitle, PageHeader, ProgressBar, Stat, Table } from '@/components/ui';
+import { QuickActionButton } from '@/components/quick-action';
+
+export const dynamic = 'force-dynamic';
 
 export default function EngagePage() {
-  const totalParticipants = challenges.reduce((s, c) => s + c.participants, 0);
-  const ambassadors = members.filter((m) => m.roles.includes('ambassador'));
-  const topPerk = perks.find((p) => p.partner === 'Dock 7 Coffee');
+  const allChallenges = challenges();
+  const allPerks = perks();
+  const totalParticipants = allChallenges.reduce((s, c) => s + c.participants, 0);
+  const ambassadors = members().filter((m) => m.roles.includes('ambassador'));
+  const topPerk = allPerks.find((p) => p.partner === 'Dock 7 Coffee');
 
   return (
     <div>
@@ -16,18 +21,31 @@ export default function EngagePage() {
         title="Challenges, perks & ambassadors"
         sub="The flywheel that keeps members moving between events — challenges to chase, perks to redeem, ambassadors to spread the word."
         actions={
-          <button
-            type="button"
+          <QuickActionButton
+            label={
+              <>
+                <Trophy className="h-4 w-4" aria-hidden />
+                New challenge
+              </>
+            }
             className="inline-flex items-center gap-2 rounded-full bg-volt px-5 py-2.5 font-display text-sm font-semibold text-ink transition hover:shadow-[0_8px_28px_rgba(205,251,80,0.35)]"
-          >
-            <Trophy className="h-4 w-4" aria-hidden />
-            New challenge
-          </button>
+            title="New challenge"
+            description="Goes live immediately with an empty leaderboard — members start earning progress on their next check-in."
+            endpoint="/api/v1/challenges"
+            fields={[
+              { name: 'name', label: 'Name', required: true, placeholder: 'August Distance Club' },
+              { name: 'metric', label: 'Metric', required: true, placeholder: 'Distance run' },
+              { name: 'target', label: 'Target', type: 'number', required: true, placeholder: '100' },
+              { name: 'unit', label: 'Unit', required: true, placeholder: 'km' },
+              { name: 'endsAt', label: 'Ends', type: 'date', required: true },
+            ]}
+            submitLabel="Launch challenge"
+          />
         }
       />
 
       <div className="grid gap-4 fade-up-1 sm:grid-cols-2 xl:grid-cols-4">
-        <Stat label="Active challenges" value={String(challenges.length)} sub="Distance, streaks, and volunteering" />
+        <Stat label="Active challenges" value={String(allChallenges.length)} sub="Distance, streaks, and volunteering" />
         <Stat label="Challenge participants" value={String(totalParticipants)} delta="+9 this week" sub="Across all live challenges" />
         <Stat label="Perk redemptions" value={String(totalPerkRedemptions())} delta="+38 this month" sub="Benefits passport, all-time" />
         <Stat label="Ambassadors" value={String(ambassadors.length)} sub="Driving referrals and welcome runs" />
@@ -35,7 +53,7 @@ export default function EngagePage() {
 
       <h2 className="mb-4 mt-8 font-display text-lg font-semibold tracking-tight fade-up-2">Challenges</h2>
       <div className="grid gap-4 fade-up-2 xl:grid-cols-3">
-        {challenges.map((c) => (
+        {allChallenges.map((c) => (
           <Card key={c.id}>
             <CardTitle action={<Badge tone="volt">ends {relativeDays(c.endsAt)}</Badge>}>{c.name}</CardTitle>
             <div className="mb-4 text-[12.5px] text-muted">
@@ -69,11 +87,11 @@ export default function EngagePage() {
       <h2 className="mb-4 mt-8 font-display text-lg font-semibold tracking-tight fade-up-3">Benefits passport</h2>
       <div className="grid gap-4 fade-up-3 xl:grid-cols-3">
         <Card className="xl:col-span-2">
-          <CardTitle action={<span className="text-[12px] text-muted">{perks.filter((p) => p.active).length} of {perks.length} live</span>}>
+          <CardTitle action={<span className="text-[12px] text-muted">{allPerks.filter((p) => p.active).length} of {allPerks.length} live</span>}>
             Partner perks
           </CardTitle>
           <Table head={['Partner', 'Category', 'Offer', 'Redemptions', 'Monthly limit', 'Status']}>
-            {perks.map((p) => (
+            {allPerks.map((p) => (
               <tr key={p.id} className="transition hover:bg-white/4">
                 <td className="py-3 pr-4 text-[13.5px] font-medium">{p.partner}</td>
                 <td className="py-3 pr-4 text-[12.5px] text-muted">{p.category}</td>

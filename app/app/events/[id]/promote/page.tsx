@@ -3,12 +3,14 @@ import { club, getEvent } from '@/lib/data';
 import { generatePosts } from '@/lib/social';
 import PromoteStudio from './promote-studio';
 
+export const dynamic = 'force-dynamic';
+
 export default async function PromotePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const event = getEvent(id);
   if (!event) notFound();
 
-  const posts = generatePosts(event, club.name);
+  const posts = generatePosts(event, club().name);
 
   return (
     <PromoteStudio

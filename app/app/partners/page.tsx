@@ -4,6 +4,9 @@ import {
 import type { Sponsor } from '@/lib/types';
 import { cn, money, relativeDays } from '@/lib/utils';
 import { Card, CardTitle, PageHeader, Stat, Table } from '@/components/ui';
+import { InstantActionButton, QuickActionButton } from '@/components/quick-action';
+
+export const dynamic = 'force-dynamic';
 
 const stages: Array<Sponsor['stage']> = ['lead', 'contacted', 'proposal', 'negotiation', 'active', 'renewal'];
 
@@ -17,8 +20,10 @@ const stageDot: Record<Sponsor['stage'], string> = {
 };
 
 export default function PartnersPage() {
-  const activePerks = perks.filter((p) => p.active).length;
+  const allSponsors = sponsors();
+  const activePerks = perks().filter((p) => p.active).length;
   const marketplaceBookings = vendors.reduce((s, v) => s + v.bookings, 0);
+  const veloProposal = allSponsors.find((s) => s.name === 'Velo Hotel Group');
 
   return (
     <div>
@@ -26,12 +31,20 @@ export default function PartnersPage() {
         title="Partners"
         sub="Sponsor CRM and vendor marketplace — turn your verified audience into recurring partner revenue."
         actions={
-          <button
-            type="button"
+          <QuickActionButton
+            label="Add sponsor"
             className="rounded-full bg-volt px-5 py-2.5 font-display text-sm font-semibold text-ink transition hover:shadow-[0_8px_28px_rgba(205,251,80,0.35)]"
-          >
-            Add sponsor
-          </button>
+            title="Add a sponsor"
+            description="Enters the pipeline at the Lead stage."
+            endpoint="/api/v1/sponsors"
+            fields={[
+              { name: 'name', label: 'Company', required: true, placeholder: 'Trailhead Outfitters' },
+              { name: 'industry', label: 'Industry', required: true, placeholder: 'Retail' },
+              { name: 'contact', label: 'Contact', required: true, placeholder: 'Jordan Lee' },
+              { name: 'dealValue', label: 'Deal value (USD)', type: 'number', required: true, placeholder: '5000' },
+            ]}
+            submitLabel="Add to pipeline"
+          />
         }
       />
 
@@ -43,12 +56,12 @@ export default function PartnersPage() {
       </div>
 
       <Card className="mt-6 fade-up-2">
-        <CardTitle action={<span className="text-[12px] text-muted">{sponsors.length} sponsors · drag to move stage</span>}>
+        <CardTitle action={<span className="text-[12px] text-muted">{allSponsors.length} sponsors · drag to move stage</span>}>
           Sponsor pipeline
         </CardTitle>
         <div className="thin-scroll -mx-1 flex gap-4 overflow-x-auto px-1 pb-2">
           {stages.map((stage) => {
-            const inStage = sponsors.filter((s) => s.stage === stage);
+            const inStage = allSponsors.filter((s) => s.stage === stage);
             return (
               <div key={stage} className="w-[248px] flex-none">
                 <div className="mb-3 flex items-center gap-2">
@@ -92,8 +105,19 @@ export default function PartnersPage() {
             race-weekend perk redemptions already this quarter.
           </p>
           <div className="mt-4 rounded-lg border border-volt/25 bg-volt/8 px-3.5 py-3 text-[12.5px] leading-relaxed text-paper/90">
-            <span className="font-semibold text-volt">Pacer:</span> the {money(9000)} proposal is ready in your drafts.
-            <button type="button" className="ml-1 font-semibold text-volt hover:underline">Review &amp; send →</button>
+            <span className="font-semibold text-volt">Pacer:</span> the {money(9000)} proposal is ready in your drafts.{' '}
+            {veloProposal && veloProposal.stage === 'proposal' ? (
+              <InstantActionButton
+                label="Review & send →"
+                busyLabel="Sending…"
+                className="ml-1 font-semibold text-volt hover:underline disabled:opacity-60"
+                endpoint={`/api/v1/sponsors/${veloProposal.id}`}
+                method="PATCH"
+                body={{ stage: 'negotiation', next_step: 'Proposal sent — awaiting response' }}
+              />
+            ) : (
+              <span className="ml-1 font-semibold text-ok">Sent ✓</span>
+            )}
           </div>
         </Card>
 

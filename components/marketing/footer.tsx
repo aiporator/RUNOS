@@ -85,11 +85,8 @@ export default function MarketingFooter({ anchorPrefix = '' }: MarketingFooterPr
             <Link href={`${anchorPrefix}#founding-partners`} className={colLink}>
               Founding-club program
             </Link>
-            <Link href="/" className={colLink}>
-              Manifesto
-            </Link>
-            <Link href="/" className={colLink}>
-              Careers
+            <Link href="/pricing" className={colLink}>
+              Pricing
             </Link>
             <Link href="/talk-to-us" className={colLink}>
               Contact

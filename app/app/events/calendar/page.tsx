@@ -3,6 +3,8 @@ import { events } from '@/lib/data';
 import { Badge, Card, CardTitle, PageHeader } from '@/components/ui';
 import CalendarClient from './calendar-client';
 
+export const dynamic = 'force-dynamic';
+
 const recurringSchedules = [
   { name: 'Saturday Long Run', cadence: 'weekly', slot: 'Sat 07:00' },
   { name: 'Track Tuesday', cadence: 'weekly', slot: 'Tue 18:00' },
@@ -10,12 +12,13 @@ const recurringSchedules = [
 ];
 
 export default function EventsCalendarPage() {
+  const allEvents = events();
   return (
     <div>
       <PageHeader
         kicker="Operations"
         title="Calendar"
-        sub={`${events.length} events on the schedule · recurring sessions auto-publish so the calendar never goes quiet.`}
+        sub={`${allEvents.length} events on the schedule · recurring sessions auto-publish so the calendar never goes quiet.`}
         actions={
           <Link
             href="/app/events"
@@ -26,7 +29,7 @@ export default function EventsCalendarPage() {
         }
       />
 
-      <CalendarClient events={events} />
+      <CalendarClient events={allEvents} />
 
       <Card className="mt-6 fade-up-2">
         <CardTitle action={<span className="text-[12px] text-muted">3 active schedules</span>}>

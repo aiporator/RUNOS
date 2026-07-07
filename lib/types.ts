@@ -174,4 +174,33 @@ export interface Club {
   memberCount: number;
   plan: 'starter' | 'club' | 'pro' | 'network';
   chapters: string[];
+  ownerEmail: string;
+  apiKey: string;
+  status: 'active' | 'pending_deletion';
+  deletionScheduledAt: string | null;
+}
+
+export interface MemberNote {
+  id: string;
+  memberId: string;
+  kind: 'note' | 'message';
+  body: string;
+  at: string; // ISO timestamp
+}
+
+export interface StaffMember {
+  id: string;
+  name: string;
+  email: string;
+  roles: string[];
+  color: string;
+  lastActive: string;
+  status: 'active' | 'invited';
+}
+
+export interface Integration {
+  id: string;
+  name: string;
+  detail: string;
+  connected: boolean;
 }

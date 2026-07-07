@@ -5,6 +5,8 @@ import { formatDate, formatDateTime, pct, relativeDays } from '@/lib/utils';
 import { Badge, Card, CardTitle, PageHeader, ProgressBar, Stat, Table } from '@/components/ui';
 import type { EventStatus, EventType } from '@/lib/types';
 
+export const dynamic = 'force-dynamic';
+
 const typeTone: Record<EventType, 'volt' | 'info' | 'warn' | 'ok' | 'muted'> = {
   'long-run': 'volt',
   track: 'info',
@@ -44,7 +46,7 @@ export default function EventsPage() {
   const avgCheckinRate =
     completed.reduce((s, e) => s + (e.registered ? e.checkedIn / e.registered : 0), 0) /
     Math.max(1, completed.length);
-  const waitlistTotal = events.reduce((s, e) => s + e.waitlist, 0);
+  const waitlistTotal = events().reduce((s, e) => s + e.waitlist, 0);
 
   return (
     <div>
@@ -61,7 +63,7 @@ export default function EventsPage() {
               Calendar view
             </Link>
             <Link
-              href="#"
+              href="/app/events/new"
               className="rounded-full bg-volt px-5 py-2.5 font-display text-sm font-semibold text-ink transition hover:shadow-[0_8px_28px_rgba(205,251,80,0.35)]"
             >
               New event

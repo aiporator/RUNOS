@@ -2,13 +2,15 @@ import { notFound } from 'next/navigation';
 import { getEvent, getMember, registrations } from '@/lib/data';
 import CheckinLive, { type CheckinEventProps, type RosterEntry } from './checkin-live';
 
+export const dynamic = 'force-dynamic';
+
 export default async function CheckinPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const event = getEvent(id);
   if (!event) notFound();
 
   // Join registrations to members on the server and pass only serializable data down.
-  const roster: RosterEntry[] = registrations
+  const roster: RosterEntry[] = registrations()
     .filter((r) => r.eventId === event.id)
     .flatMap((r, i) => {
       const m = getMember(r.memberId);

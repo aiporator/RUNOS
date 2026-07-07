@@ -6,6 +6,8 @@ import {
 import { formatDateTime, money, pct, relativeDays } from '@/lib/utils';
 import { Avatar, Badge, Card, CardTitle, PageHeader, ProgressBar, Sparkline, Stat } from '@/components/ui';
 
+export const dynamic = 'force-dynamic';
+
 export default function DashboardPage() {
   const events = upcomingEvents().filter((e) => e.status === 'published').slice(0, 3);
   const risky = atRiskMembers().slice(0, 5);
@@ -18,7 +20,7 @@ export default function DashboardPage() {
       <PageHeader
         kicker="Today at Harbor City Runners"
         title={`Morning, Maya.`}
-        sub={`${club.memberCount} members · ${newMembers().length} joined this month · Saturday Long Run is ${relativeDays(events[0]?.date ?? '')} with ${events[0]?.registered ?? 0} registered.`}
+        sub={`${club().memberCount} members · ${newMembers().length} joined this month · Saturday Long Run is ${relativeDays(events[0]?.date ?? '')} with ${events[0]?.registered ?? 0} registered.`}
         actions={
           <Link href="/app/events" className="rounded-full bg-volt px-5 py-2.5 font-display text-sm font-semibold text-ink transition hover:shadow-[0_8px_28px_rgba(205,251,80,0.35)]">
             Publish event →

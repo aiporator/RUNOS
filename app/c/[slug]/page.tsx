@@ -9,6 +9,8 @@ import type { EventType } from '@/lib/types';
 import PublicCalendar from '../public-calendar';
 import JoinForm from '../join-form';
 
+export const dynamic = 'force-dynamic';
+
 const typeTone: Record<EventType, 'volt' | 'info' | 'warn' | 'ok' | 'muted'> = {
   'long-run': 'volt',
   track: 'info',
@@ -28,14 +30,14 @@ function titleCase(slug: string): string {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const name = slug === club.slug ? club.name : titleCase(slug);
+  const name = slug === club().slug ? club().name : titleCase(slug);
   return { title: `${name} — Powered by RunOS`, description: `Join ${name} — upcoming runs, events, and membership.` };
 }
 
 export default async function PublicOrgPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const isDemo = slug !== club.slug;
-  const orgName = isDemo ? titleCase(slug) : club.name;
+  const isDemo = slug !== club().slug;
+  const orgName = isDemo ? titleCase(slug) : club().name;
   const published = upcomingEvents().filter((e) => e.status === 'published');
 
   return (
@@ -65,10 +67,10 @@ export default async function PublicOrgPage({ params }: { params: Promise<{ slug
             {orgName}
           </h1>
           <p className="mt-4 flex items-center justify-center gap-1.5 text-[15px] text-muted">
-            <MapPin size={15} className="text-muted-2" /> {club.city}
+            <MapPin size={15} className="text-muted-2" /> {club().city}
           </p>
           <p className="mt-2 text-[14px] text-muted">
-            {club.memberCount} members · 38 events last quarter · Powered by RunOS
+            {club().memberCount} members · 38 events last quarter · Powered by RunOS
           </p>
         </section>
 
