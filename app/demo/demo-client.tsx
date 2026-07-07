@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { track } from '@/lib/analytics';
 import { VERTICALS } from '@/lib/verticals';
 import { arr, btnVolt } from '@/components/marketing/styles';
+import { VerticalIcon } from '@/components/icons/vertical-icons';
 
 export function VerticalPicker() {
   const router = useRouter();
@@ -24,7 +25,9 @@ export function VerticalPicker() {
             }}
             className="group rounded-card border border-line bg-bg-2 p-5 text-left transition-all duration-300 ease-out-expo hover:-translate-y-1 hover:border-volt/50 hover:shadow-[0_14px_40px_rgba(205,251,80,0.12)]"
           >
-            <div className="text-[28px]">{v.emoji}</div>
+            <div className="grid h-11 w-11 place-items-center rounded-xl border border-volt/25 bg-volt/8">
+              <VerticalIcon id={v.id} className="h-6 w-6 text-volt" />
+            </div>
             <div className="mt-3 font-display text-[15px] font-semibold text-paper transition-colors group-hover:text-volt">
               {v.label}
             </div>

@@ -12,6 +12,7 @@ import FaqAccordion from '@/components/marketing/faq';
 import { FAQS, STEPS, TESTIMONIALS } from '@/components/marketing/data';
 import { arr, btnGhost, btnVolt, label } from '@/components/marketing/styles';
 import { VERTICALS } from '@/lib/verticals';
+import { VerticalIcon } from '@/components/icons/vertical-icons';
 
 function StepsSection() {
   return (
@@ -90,7 +91,7 @@ function InstantEventsSection() {
                 key={v.id}
                 className="inline-flex items-center gap-2 rounded-full border border-line bg-white/[0.045] px-4 py-2 text-[13.5px] font-medium text-paper/85 transition-colors duration-300 hover:border-volt/40"
               >
-                <span aria-hidden>{v.emoji}</span>
+                <VerticalIcon id={v.id} className="h-4 w-4 text-volt" />
                 {v.label}
               </span>
             ))}

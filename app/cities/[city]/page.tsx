@@ -10,6 +10,7 @@ import { Badge, EmptyState } from '@/components/ui';
 import { CITIES, getCity } from '@/lib/cities';
 import { listInstantEvents } from '@/lib/instant';
 import { getVertical } from '@/lib/verticals';
+import { VerticalIcon } from '@/components/icons/vertical-icons';
 
 type Params = { city: string };
 
@@ -100,7 +101,9 @@ export default async function CityPage({ params }: { params: Promise<Params> }) 
                   >
                     <div className="flex items-center gap-2">
                       <Badge tone="volt">{MONTHS[d.getUTCMonth()]} {d.getUTCDate()}</Badge>
-                      <Badge tone="muted">{vertical.emoji} {vertical.label}</Badge>
+                      <Badge tone="muted">
+                        <VerticalIcon id={vertical.id} className="mr-1 h-3 w-3" /> {vertical.label}
+                      </Badge>
                     </div>
                     <div className="mt-3 font-display text-[15px] font-semibold transition-colors group-hover:text-volt">
                       {e.title}

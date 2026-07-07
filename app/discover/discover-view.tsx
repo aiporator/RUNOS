@@ -13,6 +13,7 @@ import { Badge, EmptyState } from '@/components/ui';
 import { CITIES } from '@/lib/cities';
 import { VERTICALS, getVertical, type VerticalId } from '@/lib/verticals';
 import { cn } from '@/lib/utils';
+import { VerticalIcon } from '@/components/icons/vertical-icons';
 
 interface DiscoverEvent {
   id: string;
@@ -127,7 +128,7 @@ export default function DiscoverView() {
                     : 'border-line bg-bg-3 text-muted hover:border-volt/40 hover:text-paper',
                 )}
               >
-                {v.emoji} {v.label}
+                <VerticalIcon id={v.id} className="mr-1 inline h-3.5 w-3.5 align-[-3px]" /> {v.label}
               </button>
             ))}
           </div>

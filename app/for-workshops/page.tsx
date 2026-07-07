@@ -5,7 +5,7 @@ import { getVertical } from '@/lib/verticals';
 export const metadata: Metadata = {
   title: 'RunOS for Workshops & Courses',
   description:
-    'Publish a workshop. Fill the room. Repeat. Calendar-first scheduling, ticketing with lower fees, waitlists, reminders, an attendee CRM, and social promotion — automated.',
+    'Publish a workshop, pottery course, or Töpferkurs. Fill the room. Repeat. Calendar-first scheduling, ticketing with lower fees, waitlists, reminders, an attendee CRM, and social promotion — automated. Built for one-person studios too.',
 };
 
 const workshop = getVertical('workshop');
@@ -30,6 +30,10 @@ const config: VerticalPageConfig = {
     {
       title: 'Promotion eats the evening',
       body: 'The night before every session goes to captions, reminders, and copy-pasting links — instead of preparing the actual workshop.',
+    },
+    {
+      title: 'Built for one person, not a team',
+      body: "A pottery studio running one Saturday Töpferkurs a week doesn't need enterprise software — it needs the sign-up sheet, the reminder, and the payment to just work, alone, in ten minutes.",
     },
   ],
   features: [
@@ -57,12 +61,16 @@ const config: VerticalPageConfig = {
       title: 'Social promotion queue',
       body: 'Captions, reminders, and recaps drafted for every session — reviewed and scheduled from one queue.',
     },
+    {
+      title: 'Live headcount for materials ordering',
+      body: 'A confirmed-minus-cancellations count as of this morning, not the sign-up sheet from three weeks ago — so you buy the clay you actually need.',
+    },
   ],
   calendar: {
     heading: 'The calendar is the product. Fill it once, sell it forever.',
     body: 'Workshops live and die by the schedule, so RunOS starts there. Publish a session or a whole course series and everything downstream — landing page, tickets, waitlist, reminders — exists the moment it hits the calendar.',
     chips: [
-      { label: 'Intro to Ceramics Sat 10:00', day: 7, tone: 'volt' },
+      { label: 'Töpferkurs Sat 10:00', day: 7, tone: 'volt' },
       { label: 'Masterclass 19:00', day: 14, tone: 'warn' },
       { label: 'Course wk 3/6', day: 22, tone: 'info' },
     ],
@@ -80,6 +88,10 @@ const config: VerticalPageConfig = {
     {
       q: 'What does it cost?',
       a: "Free under 50 attendees, no credit card. When you sell tickets, the fee is a fraction of Eventbrite's — and it shrinks as you grow. You keep more of every seat you fill.",
+    },
+    {
+      q: "I'm one person running a pottery studio — is this overkill?",
+      a: "No — it's built for exactly that. A solo Töpferkurs host publishing one Saturday session a week gets the same 60-second setup as anyone else: one page, one link to share, materials ordering based on who's actually confirmed. Nothing here assumes a team.",
     },
     {
       q: 'Can I export my attendee list?',

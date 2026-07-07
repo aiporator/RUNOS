@@ -14,6 +14,7 @@ import MarketingFooter from '@/components/marketing/footer';
 import { arr, btnVolt, label } from '@/components/marketing/styles';
 import { Badge, EmptyState } from '@/components/ui';
 import { getVertical, type VerticalId } from '@/lib/verticals';
+import { VerticalIcon } from '@/components/icons/vertical-icons';
 
 const HOSTED_KEY = 'runos_instant_events';
 const ATTENDING_KEY = 'runos_my_runs';
@@ -77,7 +78,9 @@ function EventRow({ event, manageUrl }: { event: EventDetail; manageUrl?: string
         </div>
       </div>
       <div className="flex flex-none flex-col items-end gap-1.5">
-        <Badge tone="muted">{v.emoji} {v.label}</Badge>
+        <Badge tone="muted">
+          <VerticalIcon id={v.id} className="mr-1 h-3 w-3" /> {v.label}
+        </Badge>
         {!upcoming && <span className="text-[10.5px] text-muted-2">past</span>}
       </div>
     </Link>

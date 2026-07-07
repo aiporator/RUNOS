@@ -9,6 +9,7 @@ import { track } from '@/lib/analytics';
 import { getVertical, VERTICALS, type VerticalId } from '@/lib/verticals';
 import { arr, btnGhost, btnVolt } from '@/components/marketing/styles';
 import { cn } from '@/lib/utils';
+import { VerticalIcon } from '@/components/icons/vertical-icons';
 
 // ---------------------------------------------------------------------------
 // State
@@ -276,7 +277,7 @@ export default function StartPage() {
                       : 'border-line bg-bg-2 hover:border-volt/40',
                   )}
                 >
-                  <div className="text-[26px]">{v.emoji}</div>
+                  <VerticalIcon id={v.id} className="h-7 w-7 text-volt" />
                   <div className="mt-2.5 font-display text-[15px] font-semibold">{v.label}</div>
                   <div className="mt-1.5 text-[12.5px] leading-relaxed text-muted">{v.sub}</div>
                 </button>
@@ -579,8 +580,9 @@ export default function StartPage() {
                 </span>
                 <div>
                   <div className="font-display text-[16px] font-semibold">{state.orgName || 'Your workspace'}</div>
-                  <div className="text-[12.5px] text-muted">
-                    {vertical.emoji} {vertical.label}
+                  <div className="flex items-center gap-1.5 text-[12.5px] text-muted">
+                    <VerticalIcon id={vertical.id} className="h-3.5 w-3.5" />
+                    {vertical.label}
                     {state.city ? ` · ${state.city}` : ''}
                   </div>
                 </div>

@@ -12,7 +12,6 @@ export interface EventTypeDef {
 export interface Vertical {
   id: VerticalId;
   label: string;
-  emoji: string;
   headline: string;
   sub: string;
   nouns: {
@@ -31,7 +30,6 @@ export const VERTICALS: Vertical[] = [
   {
     id: 'running-club',
     label: 'Running club',
-    emoji: '🏃',
     headline: 'Run the club. Not the chaos.',
     sub: 'Members, runs, dues, sponsors, and an AI that plans your month — one login.',
     nouns: { org: 'club', member: 'member', event: 'run', organizer: 'organizer' },
@@ -53,7 +51,6 @@ export const VERTICALS: Vertical[] = [
   {
     id: 'gym',
     label: 'Gym',
-    emoji: '🏋️',
     headline: 'Run the gym floor, not the spreadsheet.',
     sub: 'Classes, memberships, waivers, check-ins, and win-back automations — one system.',
     nouns: { org: 'gym', member: 'member', event: 'class', organizer: 'coach' },
@@ -74,7 +71,6 @@ export const VERTICALS: Vertical[] = [
   {
     id: 'fitness-studio',
     label: 'Fitness studio',
-    emoji: '🧘',
     headline: 'Fill every class. Know every regular.',
     sub: 'Class calendar, packs & memberships, waitlists, and automations that fill quiet slots.',
     nouns: { org: 'studio', member: 'client', event: 'class', organizer: 'instructor' },
@@ -95,7 +91,6 @@ export const VERTICALS: Vertical[] = [
   {
     id: 'workshop',
     label: 'Workshops & courses',
-    emoji: '🎨',
     headline: 'Publish a workshop. Fill the room. Repeat.',
     sub: 'Calendar-first scheduling, ticketing, waitlists, reminders, and social promotion — automated.',
     nouns: { org: 'organizer', member: 'attendee', event: 'workshop', organizer: 'host' },
@@ -116,7 +111,6 @@ export const VERTICALS: Vertical[] = [
   {
     id: 'community',
     label: 'Community & meetups',
-    emoji: '🤝',
     headline: 'Your community, professionally run.',
     sub: 'Events, members, volunteers, sponsors, and growth loops for any community that meets.',
     nouns: { org: 'community', member: 'member', event: 'event', organizer: 'organizer' },

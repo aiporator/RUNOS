@@ -12,6 +12,7 @@ import { FREE_CAPACITY } from '@/lib/instant';
 import { getVertical, VERTICALS, type VerticalId } from '@/lib/verticals';
 import { cn } from '@/lib/utils';
 import { Badge, ProgressBar } from '@/components/ui';
+import { VerticalIcon } from '@/components/icons/vertical-icons';
 
 const STORAGE_KEY = 'runos_instant_events';
 
@@ -224,13 +225,13 @@ export default function CreateEventForm() {
                         type="button"
                         onClick={() => pickVertical(v.id)}
                         className={cn(
-                          'rounded-full border px-4 py-2 text-[13px] font-semibold transition-all duration-200',
+                          'inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-[13px] font-semibold transition-all duration-200',
                           verticalId === v.id
                             ? 'border-volt bg-volt/15 text-volt'
                             : 'border-line bg-bg-3 text-muted hover:border-volt/40 hover:text-paper',
                         )}
                       >
-                        {v.emoji} {v.label}
+                        <VerticalIcon id={v.id} className="h-4 w-4" /> {v.label}
                       </button>
                     ))}
                   </div>
@@ -382,7 +383,7 @@ export default function CreateEventForm() {
                       {vertical.eventTypes.find((t) => t.id === eventType)?.label ?? eventType}
                     </Badge>
                     <Badge tone="muted">
-                      {vertical.emoji} {vertical.label}
+                      <VerticalIcon id={verticalId} className="mr-1 h-3 w-3" /> {vertical.label}
                     </Badge>
                     <Badge tone="volt">Free</Badge>
                   </div>

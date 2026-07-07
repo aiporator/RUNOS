@@ -8,6 +8,7 @@ import { CalendarDays, Lock, MapPin, PartyPopper } from 'lucide-react';
 import { FREE_CAPACITY, getInstantEvent, listRsvps, stats } from '@/lib/instant';
 import { getVertical } from '@/lib/verticals';
 import { Badge, Card } from '@/components/ui';
+import { VerticalIcon } from '@/components/icons/vertical-icons';
 import AttendeeList from '../../attendee-list';
 import ShareRow from '../../share-row';
 import { CopyLinkField, UpgradeCta } from '../../manage-widgets';
@@ -123,7 +124,7 @@ export default async function ManageInstantEventPage({
         <div className="fade-up">
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone="muted">
-              {vertical.emoji} {vertical.label}
+              <VerticalIcon id={vertical.id} className="mr-1 h-3 w-3" /> {vertical.label}
             </Badge>
             {event.capacity <= FREE_CAPACITY ? (
               <Badge tone="volt">Free forever</Badge>

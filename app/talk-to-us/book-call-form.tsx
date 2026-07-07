@@ -199,7 +199,7 @@ export default function BookCallForm() {
                   >
                     <option value="">Prefer not to say</option>
                     {VERTICALS.map((v) => (
-                      <option key={v.id} value={v.id}>{v.emoji} {v.label}</option>
+                      <option key={v.id} value={v.id}>{v.label}</option>
                     ))}
                   </select>
                 </div>

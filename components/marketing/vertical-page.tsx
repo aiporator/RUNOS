@@ -11,6 +11,7 @@ import FaqAccordion from './faq';
 import type { Faq } from './data';
 import { arr, btnGhost, btnVolt, label } from './styles';
 import type { Vertical } from '@/lib/verticals';
+import { VerticalIcon } from '@/components/icons/vertical-icons';
 
 export type VerticalPain = { title: string; body: string };
 export type VerticalFeature = { title: string; body: string };
@@ -63,10 +64,10 @@ function VerticalHero({ config }: { config: VerticalPageConfig }) {
       <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-[#12170a] via-bg to-bg" />
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(55%_70%_at_65%_0%,rgba(205,251,80,0.1),transparent_70%)]" />
       <div className="mx-auto max-w-[1200px] px-6 text-center">
+        <div className="mk-fade-up mx-auto mb-6 grid h-16 w-16 place-items-center rounded-2xl border border-volt/25 bg-volt/8">
+          <VerticalIcon id={vertical.id} className="h-8 w-8 text-volt" />
+        </div>
         <span className="mk-fade-up mb-[22px] inline-flex items-center gap-2.5 text-[12.5px] font-semibold uppercase tracking-[0.14em] text-volt">
-          <span className="text-base" aria-hidden="true">
-            {vertical.emoji}
-          </span>
           {kicker}
         </span>
         <h1

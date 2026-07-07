@@ -8,6 +8,7 @@ import { MapPin, Share2, User } from 'lucide-react';
 import { FREE_CAPACITY, getInstantEvent, stats } from '@/lib/instant';
 import { getVertical } from '@/lib/verticals';
 import { Badge, ProgressBar } from '@/components/ui';
+import { VerticalIcon } from '@/components/icons/vertical-icons';
 import InstantRsvpForm from '../instant-rsvp-form';
 import ShareRow from '../share-row';
 import InstantPoweredBy from '../instant-powered-by';
@@ -77,7 +78,7 @@ export default async function InstantEventPage({
             <div className="flex flex-wrap items-center gap-2.5">
               <Badge tone={typeDef?.tone ?? 'volt'}>{typeDef?.label ?? event.type}</Badge>
               <Badge tone="muted">
-                {vertical.emoji} {vertical.label}
+                <VerticalIcon id={vertical.id} className="mr-1 h-3 w-3" /> {vertical.label}
               </Badge>
               {event.price === 0 && <Badge tone="volt">Free event</Badge>}
             </div>
