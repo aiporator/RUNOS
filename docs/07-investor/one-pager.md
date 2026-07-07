@@ -1,6 +1,7 @@
 # RunOS — Investor One-Pager
 
-**The operating system for communities that move.** | run.aiporate.com | start@aiporate.com
+**The operating system for communities that move.** | An Aiporate.com brand |
+run.aiporate.com | start@aiporate.com
 
 ---
 

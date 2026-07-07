@@ -28,6 +28,12 @@ export default function MarketingFooter({ anchorPrefix = '' }: MarketingFooterPr
               One login. One database. Your whole club. The operating system for running
               communities.
             </p>
+            <a
+              href="https://aiporate.com"
+              className="mt-4 inline-block text-[12px] text-muted-2 transition-colors hover:text-volt"
+            >
+              An Aiporate.com brand ↗
+            </a>
           </div>
           <div>
             <h4 className={colHead}>Product</h4>
@@ -88,7 +94,7 @@ export default function MarketingFooter({ anchorPrefix = '' }: MarketingFooterPr
           RUNOS
         </Reveal>
         <div className="flex flex-wrap justify-between gap-5 border-t border-line pt-7 text-[13px] text-muted">
-          <span>© 2026 RunOS. Built with founding clubs in five cities.</span>
+          <span>© 2026 RunOS, an Aiporate.com brand. Built with founding clubs in five cities.</span>
           <span>Your data, your rules. Full export, no hostage-taking.</span>
         </div>
       </div>

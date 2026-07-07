@@ -10,6 +10,8 @@ export const metadata: Metadata = {
   },
   description:
     'RunOS replaces the spreadsheet, the group chat sprawl, and the ticketing tax with one platform: members, events, money, sponsors, and an AI that plans your month.',
+  applicationName: 'RunOS',
+  authors: [{ name: 'Aiporate' }],
   openGraph: {
     type: 'website',
     siteName: 'RunOS',
