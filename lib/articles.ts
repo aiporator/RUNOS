@@ -18,6 +18,9 @@ export interface Article {
   publishedAt: string; // ISO date, no time — editorial date, not a timestamp
   body: ArticleBlock[];
   cta: { label: string; href: string };
+  /** Smart cross-link into a /workshops/[type] page — set when the article's real
+   *  example (clay, lumber, a kitchen) maps to a specific craft, for lead-gen. */
+  relatedWorkshopType?: import('./workshop-types').WorkshopTypeId;
 }
 
 export const ARTICLES: Article[] = [
@@ -365,6 +368,7 @@ export const ARTICLES: Article[] = [
       { type: 'quote', text: "A full waitlist isn't a sign to apologize. It's a sign to schedule." },
     ],
     cta: { label: 'Create a workshop with a real waitlist →', href: '/new' },
+    relatedWorkshopType: 'pottery',
   },
   {
     slug: 'pricing-a-workshop',
@@ -390,6 +394,7 @@ export const ARTICLES: Article[] = [
       { type: 'quote', text: 'What feels fair usually means what got forgotten — the room, the time, and the two people who never showed up.' },
     ],
     cta: { label: 'See the fee structure →', href: '/pricing' },
+    relatedWorkshopType: 'woodworking',
   },
   {
     slug: 'workshop-or-course-series',
@@ -415,6 +420,7 @@ export const ARTICLES: Article[] = [
       { type: 'quote', text: 'A series is not a one-off repeated four times — it is a different bet on the same idea.' },
     ],
     cta: { label: 'Publish your first session free →', href: '/new' },
+    relatedWorkshopType: 'woodworking',
   },
   {
     slug: 'materials-supply-costs',
@@ -440,6 +446,7 @@ export const ARTICLES: Article[] = [
       { type: 'p', text: "A 20-30% overorder on materials, repeated weekly across a season, isn't a rounding error — it's thousands of dollars a year for a studio running even a modest schedule, and it's invisible precisely because it never arrives as one large bill. It's the gap between the margin a workshop was priced to deliver and the margin it actually delivers, and it closes as soon as ordering decisions run on a number that's true the morning of, not the week the sheet went up." },
     ],
     cta: { label: 'See where platform fees actually apply →', href: '/pricing' },
+    relatedWorkshopType: 'pottery',
   },
   {
     slug: 'paying-instructors-without-spreadsheet',
@@ -465,6 +472,7 @@ export const ARTICLES: Article[] = [
       { type: 'p', text: "One instructor and one organizer can run on trust and a shared calendar indefinitely. The moment a studio has multiple people teaching, hosting, or subbing in — and multiple pay structures to match — trust stops being a system, and the reconciliation work grows faster than the schedule does. That's usually the point where a manual spreadsheet quietly becomes the biggest source of friction between an organizer and the people actually running their sessions." },
     ],
     cta: { label: 'Talk to us about multi-instructor payouts →', href: '/talk-to-us' },
+    relatedWorkshopType: 'pottery',
   },
   {
     slug: 'workshop-alumni-retention',
@@ -489,6 +497,7 @@ export const ARTICLES: Article[] = [
       { type: 'p', text: "The honest tradeoff is that this only works if attendance and class history are captured in the first place, session after session, not reconstructed later from memory. But that's a one-time discipline, not an ongoing cost — and it's the difference between a workshop business that starts every month from zero and one that's quietly compounding a list of people who've already bought once." },
     ],
     cta: { label: 'See the growth automations in the demo →', href: '/demo' },
+    relatedWorkshopType: 'pottery',
   },
   {
     slug: 'seasonal-capacity-planning',

@@ -12,6 +12,8 @@ import type { Faq } from './data';
 import { arr, btnGhost, btnVolt, label } from './styles';
 import type { Vertical } from '@/lib/verticals';
 import { VerticalIcon } from '@/components/icons/vertical-icons';
+import { WorkshopTypeIcon } from '@/components/icons/workshop-type-icons';
+import { WORKSHOP_TYPES } from '@/lib/workshop-types';
 
 export type VerticalPain = { title: string; body: string };
 export type VerticalFeature = { title: string; body: string };
@@ -51,6 +53,8 @@ export type VerticalPageConfig = {
     accent: string;
     body: string;
   };
+  /** Optional — renders a "browse by craft" band linking into /workshops/[type]. Workshops page only. */
+  craftBrowse?: { heading: string; body: string };
 };
 
 /* ------------------------------------------------------------------ */
@@ -177,6 +181,44 @@ function FeaturesSection({ config }: { config: VerticalPageConfig }) {
                 </div>
               </article>
             </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Browse by craft — /for-workshops only, links into /workshops/[type] */
+/* ------------------------------------------------------------------ */
+
+function CraftBrowseSection({ config }: { config: VerticalPageConfig }) {
+  if (!config.craftBrowse) return null;
+  const { heading, body } = config.craftBrowse;
+  return (
+    <section className="bg-bg-2 py-[100px]">
+      <div className="mx-auto max-w-[1200px] px-6">
+        <Reveal className="mb-[50px] max-w-[640px]">
+          <span className={`${label} text-muted`}>Built for your specific craft</span>
+          <h2 className="mb-3 font-display text-[clamp(28px,3.6vw,44px)] font-semibold leading-[1.05] tracking-[-0.02em]">
+            {heading}
+          </h2>
+          <p className="text-[15px] leading-[1.65] text-muted">{body}</p>
+        </Reveal>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {WORKSHOP_TYPES.map((w) => (
+            <Link
+              key={w.slug}
+              href={`/workshops/${w.slug}`}
+              className="group flex flex-col items-center gap-2.5 rounded-card border border-line bg-white/[0.03] p-5 text-center transition-all duration-300 ease-out-expo hover:-translate-y-1 hover:border-volt/40"
+            >
+              <div className="grid h-11 w-11 place-items-center rounded-xl border border-volt/25 bg-volt/8">
+                <WorkshopTypeIcon id={w.id} className="h-[22px] w-[22px] text-volt" />
+              </div>
+              <span className="font-display text-[13px] font-semibold transition-colors group-hover:text-volt">
+                {w.name}
+              </span>
+            </Link>
           ))}
         </div>
       </div>
@@ -400,6 +442,7 @@ export default function VerticalPage({ config }: { config: VerticalPageConfig })
       <VerticalHero config={config} />
       <PainsSection config={config} />
       <FeaturesSection config={config} />
+      <CraftBrowseSection config={config} />
       <CalendarSection config={config} />
       <PromoteSection config={config} />
       <PricingSection />

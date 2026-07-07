@@ -79,7 +79,9 @@ export default function CreateEventForm() {
     const params = new URLSearchParams(window.location.search);
     const loc = params.get('location');
     const vert = params.get('vertical');
+    const titleParam = params.get('title');
     if (loc) setLocation(loc);
+    if (titleParam) setTitle(titleParam);
     if (vert && VERTICALS.some((v) => v.id === vert)) pickVertical(vert as VerticalId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -174,8 +174,12 @@ export function getInstantEvent(id: string): InstantEvent | undefined {
   return getState().events.find((e) => e.id === id);
 }
 
-/** Public discovery listing — newest first, optional free-text (title/location) and vertical filters. */
-export function listInstantEvents(filter?: { q?: string; vertical?: VerticalId }): InstantEvent[] {
+/** Public discovery listing — newest first, optional free-text (title/location), vertical, and multi-keyword (OR) filters. */
+export function listInstantEvents(filter?: {
+  q?: string;
+  vertical?: VerticalId;
+  keywords?: string[];
+}): InstantEvent[] {
   let events = getState().events;
   if (filter?.vertical) {
     events = events.filter((e) => e.vertical === filter.vertical);
@@ -187,6 +191,13 @@ export function listInstantEvents(filter?: { q?: string; vertical?: VerticalId }
         (e) => e.location.toLowerCase().includes(q) || e.title.toLowerCase().includes(q),
       );
     }
+  }
+  if (filter?.keywords && filter.keywords.length > 0) {
+    const kws = filter.keywords.map((k) => k.toLowerCase());
+    events = events.filter((e) => {
+      const haystack = `${e.title} ${e.location} ${e.description}`.toLowerCase();
+      return kws.some((k) => haystack.includes(k));
+    });
   }
   return [...events].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }

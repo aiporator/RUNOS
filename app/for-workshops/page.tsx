@@ -103,6 +103,10 @@ const config: VerticalPageConfig = {
     accent: 'every month.',
     body: 'Publish your next workshop in under ten minutes. Free under 50 attendees, no credit card — and every session drafts its own promotion.',
   },
+  craftBrowse: {
+    heading: 'A pottery studio and a woodworking shop don\'t run the same way.',
+    body: 'Materials, safety, capacity limits, and seasonality look different for every craft. Pick yours — the page is written for how it actually operates, not a template with the noun swapped.',
+  },
 };
 
 export default function ForWorkshopsPage() {

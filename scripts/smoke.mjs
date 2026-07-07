@@ -40,7 +40,8 @@ async function page(path) {
 
 // ---------- routes ----------
 const PAGES_200 = ['/', '/pricing', '/for-gyms', '/for-workshops', '/for-runners', '/demo', '/start', '/new', '/talk-to-us',
-  '/articles', '/articles/seven-app-problem', '/cities', '/cities/berlin', '/cities/amsterdam', '/discover', '/my-runs',
+  '/articles', '/articles/seven-app-problem', '/articles/materials-supply-costs', '/cities', '/cities/berlin', '/cities/amsterdam',
+  '/discover', '/my-runs', '/workshops', '/workshops/pottery', '/workshops/woodworking', '/workshops/textile',
   '/e/ie_demo1', '/c/harbor-city-runners', '/c/harbor-city-runners/evt_003',
   '/app', '/app/community', '/app/events', '/app/events/calendar', '/app/events/evt_001/checkin',
   '/app/events/evt_003/promote', '/app/intelligence', '/robots.txt', '/sitemap.xml', '/openapi.json'];
@@ -51,6 +52,7 @@ check('GET /e/nope → 404', (await page('/e/nope')) === 404);
 check('GET /app/community/nope → 404', (await page('/app/community/nope')) === 404);
 check('GET /articles/nope → 404', (await page('/articles/nope')) === 404);
 check('GET /cities/nope → 404', (await page('/cities/nope')) === 404);
+check('GET /workshops/nope → 404', (await page('/workshops/nope')) === 404);
 
 // ---------- demo API contract ----------
 {
@@ -148,6 +150,17 @@ check('GET /cities/nope → 404', (await page('/cities/nope')) === 404);
 
   const list = await get('/api/v1/appointments', AUTH);
   check('appointments list (auth)', list.status === 200 && list.body?.data?.some((a) => a.email === 'partner@smoke.dev'));
+}
+
+// ---------- workshop-type pages (craft-specific discovery) ----------
+{
+  const potteryEvent = await post('/api/v1/public/events', {
+    title: 'Smoke Wheel Throwing Basics', hostName: 'CI', vertical: 'workshop', type: 'workshop',
+    date: '2026-12-04T10:00:00Z', location: 'Smoke Ceramics Studio', capacity: 8, price: 0,
+  }, { 'Content-Type': 'application/json' });
+  check('pottery-keyword event created', potteryEvent.status === 201);
+
+  check('pottery workshop page 200 (with live event)', (await page('/workshops/pottery')) === 200);
 }
 
 console.log(`\nSmoke: ${passed} passed, ${failed} failed`);

@@ -6,6 +6,8 @@ import MarketingFooter from '@/components/marketing/footer';
 import Reveal from '@/components/marketing/reveal';
 import { arr, btnVolt, label } from '@/components/marketing/styles';
 import { ARTICLES, getArticle, otherArticles, type ArticleBlock } from '@/lib/articles';
+import { getWorkshopType } from '@/lib/workshop-types';
+import { WorkshopTypeIcon } from '@/components/icons/workshop-type-icons';
 
 type Params = { slug: string };
 
@@ -65,6 +67,7 @@ export default async function ArticlePage({ params }: { params: Promise<Params> 
   if (!article) notFound();
 
   const related = otherArticles(slug);
+  const workshopType = article.relatedWorkshopType ? getWorkshopType(article.relatedWorkshopType) : undefined;
 
   return (
     <main className="overflow-x-clip bg-bg text-paper">
@@ -103,6 +106,30 @@ export default async function ArticlePage({ params }: { params: Promise<Params> 
               {article.cta.label} <span className={arr}>→</span>
             </Link>
           </Reveal>
+
+          {workshopType && (
+            <Reveal className="mt-5">
+              <Link
+                href={`/workshops/${workshopType.slug}`}
+                className="group flex items-center gap-4 rounded-card border border-line bg-bg-2 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-volt/40"
+              >
+                <div className="grid h-11 w-11 flex-none place-items-center rounded-xl border border-volt/25 bg-volt/8">
+                  <WorkshopTypeIcon id={workshopType.id} className="h-[22px] w-[22px] text-volt" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-display text-[14px] font-semibold transition-colors group-hover:text-volt">
+                    Running a {workshopType.name.toLowerCase()} studio specifically?
+                  </div>
+                  <p className="mt-1 text-[12.5px] text-muted">
+                    See the page built for {workshopType.name.toLowerCase()} instructors.
+                  </p>
+                </div>
+                <span className="flex-none font-display text-[13px] font-semibold text-volt transition-transform duration-200 group-hover:translate-x-1">
+                  →
+                </span>
+              </Link>
+            </Reveal>
+          )}
 
           {related.length > 0 && (
             <div className="mt-16 border-t border-line pt-10">

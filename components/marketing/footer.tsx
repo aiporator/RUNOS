@@ -67,6 +67,9 @@ export default function MarketingFooter({ anchorPrefix = '' }: MarketingFooterPr
             <Link href="/for-workshops" className={colLink}>
               Workshops &amp; courses
             </Link>
+            <Link href="/workshops" className={colLink}>
+              Workshops by craft
+            </Link>
             <Link href="/for-runners" className={colLink}>
               Runners
             </Link>
