@@ -18,6 +18,14 @@ const config: VerticalPageConfig = {
     accent: 'Repeat.',
     sub: workshop.sub,
   },
+  heroImage: {
+    src: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=2000&q=80',
+    alt: 'Focused athlete at sunrise',
+  },
+  ctaImage: {
+    src: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=2000&q=80',
+    alt: 'Athlete lacing up on track',
+  },
   pains: [
     {
       title: 'The monthly rebuild',

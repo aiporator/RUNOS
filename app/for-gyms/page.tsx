@@ -18,6 +18,14 @@ const config: VerticalPageConfig = {
     accent: 'not the spreadsheet.',
     sub: gym.sub,
   },
+  heroImage: {
+    src: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=2000&q=80',
+    alt: 'Athlete lacing up on track',
+  },
+  ctaImage: {
+    src: 'https://images.unsplash.com/photo-1571008887538-b36bb32f4571?auto=format&fit=crop&w=2000&q=80',
+    alt: 'Runner resting at sunset',
+  },
   pains: [
     {
       title: 'The no-show class',

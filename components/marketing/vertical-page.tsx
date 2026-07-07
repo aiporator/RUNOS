@@ -6,6 +6,7 @@ import Link from 'next/link';
 import MarketingNav from './nav';
 import MarketingFooter from './footer';
 import Reveal from './reveal';
+import ParallaxBg from './parallax';
 import PricingSection from './pricing-section';
 import FaqAccordion from './faq';
 import type { Faq } from './data';
@@ -61,6 +62,10 @@ export type VerticalPageConfig = {
     body: string;
     steps: { title: string; body: string }[];
   };
+  /** Optional — full-bleed hero photo, same treatment as the homepage hero. */
+  heroImage?: { src: string; alt: string };
+  /** Optional — full-bleed photo behind the final CTA band. */
+  ctaImage?: { src: string; alt: string };
 };
 
 /* ------------------------------------------------------------------ */
@@ -68,11 +73,26 @@ export type VerticalPageConfig = {
 /* ------------------------------------------------------------------ */
 
 function VerticalHero({ config }: { config: VerticalPageConfig }) {
-  const { vertical, kicker, hero } = config;
+  const { vertical, kicker, hero, heroImage } = config;
   return (
     <header className="relative isolate overflow-hidden bg-bg pb-[110px] pt-[190px]">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-[#12170a] via-bg to-bg" />
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(55%_70%_at_65%_0%,rgba(205,251,80,0.1),transparent_70%)]" />
+      {heroImage ? (
+        <div className="absolute inset-0 -z-10 overflow-hidden bg-gradient-to-br from-[#1a2410] to-bg">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={heroImage.src}
+            alt={heroImage.alt}
+            loading="eager"
+            className="mk-kenburns h-full w-full object-cover [filter:saturate(0.85)_contrast(1.05)]"
+          />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(12,13,10,0.62)_0%,rgba(12,13,10,0.4)_38%,rgba(12,13,10,0.94)_88%,#0c0d0a_100%)]" />
+        </div>
+      ) : (
+        <>
+          <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-[#12170a] via-bg to-bg" />
+          <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(55%_70%_at_65%_0%,rgba(205,251,80,0.1),transparent_70%)]" />
+        </>
+      )}
       <div className="mx-auto max-w-[1200px] px-6 text-center">
         <div className="mk-fade-up mx-auto mb-6 grid h-16 w-16 place-items-center rounded-2xl border border-volt/25 bg-volt/8">
           <VerticalIcon id={vertical.id} className="h-8 w-8 text-volt" />
@@ -448,11 +468,25 @@ function VerticalFaqSection({ config }: { config: VerticalPageConfig }) {
 /* ------------------------------------------------------------------ */
 
 function VerticalCtaSection({ config }: { config: VerticalPageConfig }) {
-  const { cta } = config;
+  const { cta, ctaImage } = config;
   return (
     <section className="relative isolate overflow-hidden py-[150px] text-center" id="cta">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-[#12170a] to-bg" />
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(50%_65%_at_50%_100%,rgba(205,251,80,0.09),transparent_70%)]" />
+      {ctaImage ? (
+        <ParallaxBg speed={0.12} className="absolute inset-x-0 -inset-y-[12%] -z-10 bg-gradient-to-br from-[#12170a] to-bg">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={ctaImage.src}
+            alt={ctaImage.alt}
+            loading="lazy"
+            className="h-full w-full object-cover brightness-[0.34] saturate-[0.7]"
+          />
+        </ParallaxBg>
+      ) : (
+        <>
+          <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-[#12170a] to-bg" />
+          <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(50%_65%_at_50%_100%,rgba(205,251,80,0.09),transparent_70%)]" />
+        </>
+      )}
       <div className="mx-auto max-w-[1200px] px-6">
         <Reveal>
           <h2 className="mx-auto mb-6 max-w-[18ch] font-display text-[clamp(36px,5.4vw,72px)] font-semibold leading-[1.05] tracking-[-0.02em]">

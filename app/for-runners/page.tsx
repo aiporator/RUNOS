@@ -3,6 +3,7 @@ import Link from 'next/link';
 import MarketingNav from '@/components/marketing/nav';
 import MarketingFooter from '@/components/marketing/footer';
 import Reveal from '@/components/marketing/reveal';
+import ParallaxBg from '@/components/marketing/parallax';
 import { arr, btnDark, btnVolt, label } from '@/components/marketing/styles';
 
 export const metadata: Metadata = {
@@ -51,7 +52,16 @@ export default function ForRunnersPage() {
       <MarketingNav anchorPrefix="/" />
 
       <header className="relative isolate overflow-hidden pb-16 pt-[170px]">
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_80%_at_70%_0%,rgba(205,251,80,0.1),transparent_70%)]" />
+        <div className="absolute inset-0 -z-10 overflow-hidden bg-gradient-to-br from-[#1a2410] to-bg">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="https://images.unsplash.com/photo-1502904550040-7534597429ae?auto=format&fit=crop&w=2000&q=80"
+            alt="Runner silhouette"
+            loading="eager"
+            className="mk-kenburns h-full w-full object-cover [filter:saturate(0.85)_contrast(1.05)]"
+          />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(12,13,10,0.6)_0%,rgba(12,13,10,0.35)_38%,rgba(12,13,10,0.94)_88%,#0c0d0a_100%)]" />
+        </div>
         <div className="mx-auto max-w-[900px] px-6">
           <span className={`${label} text-volt`}>For runners</span>
           <h1 className="mb-6 font-display text-[clamp(34px,6vw,64px)] font-semibold leading-[1.03] tracking-[-0.02em]">
@@ -134,7 +144,16 @@ export default function ForRunnersPage() {
         </div>
       </section>
 
-      <section className="py-[100px] text-center">
+      <section className="relative isolate overflow-hidden py-[130px] text-center">
+        <ParallaxBg speed={0.12} className="absolute inset-x-0 -inset-y-[12%] -z-10 bg-gradient-to-br from-[#12170a] to-bg">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=2000&q=80"
+            alt="Athlete lacing up on track"
+            loading="lazy"
+            className="h-full w-full object-cover brightness-[0.34] saturate-[0.7]"
+          />
+        </ParallaxBg>
         <div className="mx-auto max-w-[700px] px-6">
           <Reveal>
             <h2 className="mx-auto mb-5 max-w-[20ch] font-display text-[clamp(28px,4vw,46px)] font-semibold leading-[1.08] tracking-[-0.02em]">
