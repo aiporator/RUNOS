@@ -52,6 +52,9 @@ export default function MarketingFooter({ anchorPrefix = '' }: MarketingFooterPr
             <Link href="/articles" className={colLink}>
               Articles
             </Link>
+            <Link href="/discover" className={colLink}>
+              Discover runs
+            </Link>
           </div>
           <div>
             <h4 className={colHead}>For</h4>
@@ -64,14 +67,14 @@ export default function MarketingFooter({ anchorPrefix = '' }: MarketingFooterPr
             <Link href="/for-workshops" className={colLink}>
               Workshops &amp; courses
             </Link>
-            <Link href={`${anchorPrefix}#surfaces`} className={colLink}>
-              Members
+            <Link href="/for-runners" className={colLink}>
+              Runners
             </Link>
             <Link href={`${anchorPrefix}#surfaces`} className={colLink}>
               Brands
             </Link>
-            <Link href={`${anchorPrefix}#surfaces`} className={colLink}>
-              Cities &amp; federations
+            <Link href="/cities" className={colLink}>
+              Cities
             </Link>
           </div>
           <div>

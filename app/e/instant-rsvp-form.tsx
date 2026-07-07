@@ -13,6 +13,21 @@ interface RsvpResponse {
   error?: { message?: string };
 }
 
+const MY_RUNS_KEY = 'runos_my_runs';
+
+/** Remembers an RSVP'd event id in this browser — the no-account "My Runs" passport. */
+function saveToMyRuns(eventId: string): void {
+  try {
+    const raw = window.localStorage.getItem(MY_RUNS_KEY);
+    const ids: string[] = raw ? (JSON.parse(raw) as string[]) : [];
+    if (!ids.includes(eventId)) {
+      window.localStorage.setItem(MY_RUNS_KEY, JSON.stringify([...ids, eventId]));
+    }
+  } catch {
+    // storage full/blocked — the RSVP itself still went through
+  }
+}
+
 /** Deterministic QR-looking placeholder built from divs — keeps the bundle light. */
 function QrPlaceholder({ seed }: { seed: string }) {
   let h = 0;
@@ -71,6 +86,7 @@ export default function InstantRsvpForm({
         return;
       }
       track('instant_rsvp', { eventId, status: json.data.status });
+      saveToMyRuns(eventId);
       setStatus(json.data.status);
     } catch {
       setError('Network hiccup — try again.');

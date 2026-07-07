@@ -128,17 +128,29 @@ export default function StartPage() {
   const [loaded, setLoaded] = useState(false);
   const startedRef = useRef(false);
 
-  // Hydrate from localStorage once, then fire wizard_started once per mount.
+  // Hydrate from localStorage once, then apply any query-param prefill (e.g.
+  // from a city landing page: ?city=Berlin&vertical=running-club), then fire
+  // wizard_started once per mount.
   useEffect(() => {
+    let hydrated = DEFAULT_STATE;
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<WizardState>;
-        setState({ ...DEFAULT_STATE, ...parsed });
+        hydrated = { ...DEFAULT_STATE, ...parsed };
       }
     } catch {
       // corrupted stash — start fresh
     }
+    const params = new URLSearchParams(window.location.search);
+    const city = params.get('city');
+    const vertical = params.get('vertical');
+    const prefill: Partial<WizardState> = {};
+    if (city) prefill.city = city;
+    if (vertical && VERTICALS.some((v) => v.id === vertical)) {
+      prefill.verticalId = vertical as VerticalId;
+    }
+    setState({ ...hydrated, ...prefill });
     setLoaded(true);
     if (!startedRef.current) {
       startedRef.current = true;

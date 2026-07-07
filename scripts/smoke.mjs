@@ -39,8 +39,8 @@ async function page(path) {
 }
 
 // ---------- routes ----------
-const PAGES_200 = ['/', '/pricing', '/for-gyms', '/for-workshops', '/demo', '/start', '/new', '/talk-to-us',
-  '/articles', '/articles/seven-app-problem',
+const PAGES_200 = ['/', '/pricing', '/for-gyms', '/for-workshops', '/for-runners', '/demo', '/start', '/new', '/talk-to-us',
+  '/articles', '/articles/seven-app-problem', '/cities', '/cities/berlin', '/cities/amsterdam', '/discover', '/my-runs',
   '/e/ie_demo1', '/c/harbor-city-runners', '/c/harbor-city-runners/evt_003',
   '/app', '/app/community', '/app/events', '/app/events/calendar', '/app/events/evt_001/checkin',
   '/app/events/evt_003/promote', '/app/intelligence', '/robots.txt', '/sitemap.xml', '/openapi.json'];
@@ -50,6 +50,7 @@ for (const p of PAGES_200) {
 check('GET /e/nope → 404', (await page('/e/nope')) === 404);
 check('GET /app/community/nope → 404', (await page('/app/community/nope')) === 404);
 check('GET /articles/nope → 404', (await page('/articles/nope')) === 404);
+check('GET /cities/nope → 404', (await page('/cities/nope')) === 404);
 
 // ---------- demo API contract ----------
 {
@@ -107,6 +108,24 @@ check('GET /articles/nope → 404', (await page('/articles/nope')) === 404);
 
   const leads = await post('/api/v1/leads', { org_name: 'Smoke Club', vertical: 'gym' }, { 'Content-Type': 'application/json' });
   check('lead captured (no auth)', leads.status === 201 && leads.body?.data?.status === 'captured');
+}
+
+// ---------- discovery (runner-facing browse, no auth) ----------
+{
+  const berlinEvent = await post('/api/v1/public/events', {
+    title: 'Smoke Berlin Loop', hostName: 'CI', vertical: 'running-club', type: 'social',
+    date: '2026-12-02T07:00:00Z', location: 'Tempelhofer Feld, Berlin', capacity: 15, price: 0,
+  }, { 'Content-Type': 'application/json' });
+  check('discovery seed event created', berlinEvent.status === 201);
+
+  const list = await get('/api/v1/public/events?limit=50');
+  check('public events list (no auth)', list.status === 200 && Array.isArray(list.body?.data) && list.body.data.length > 0);
+
+  const filtered = await get('/api/v1/public/events?q=Berlin');
+  check('public events filtered by city', filtered.status === 200 && filtered.body.data.some((e) => e.location.includes('Berlin')));
+
+  const byVertical = await get('/api/v1/public/events?vertical=running-club');
+  check('public events filtered by vertical', byVertical.status === 200 && byVertical.body.data.every((e) => e.vertical === 'running-club'));
 }
 
 // ---------- appointments (lead → booked call) ----------

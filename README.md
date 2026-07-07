@@ -23,13 +23,17 @@ npm install
 npm run dev          # http://localhost:3000
 npm run typecheck    # TypeScript strict — 0 errors
 npx next lint        # ESLint (core-web-vitals) — 0 errors
-npm run build        # production build — 55 routes
+npm run build        # production build — 64 routes
 npm start && npm run smoke   # smoke assertions against the running server
 ```
 
 **Key surfaces:** `/` marketing · `/demo` instant product tour · `/start` onboarding wizard ·
 `/new` 60-second event creator (real create → share → RSVP, no account) ·
 `/talk-to-us` book a real call slot (lead + appointment capture, no calendar dependency) ·
+`/discover` browse public runs/classes by city or type · `/cities` local landing pages
+(Cologne, Düsseldorf, Frankfurt, München, Berlin, Amsterdam, Paris, Barcelona) ·
+`/for-runners` + `/my-runs` the runner-facing side — no-account "running life" passport
+backed by browser localStorage ·
 `/app` full organizer OS (seeded demo) ·
 `/api/v1/*` REST API (`app/api/README.md`, OpenAPI at `/openapi.json`).
 

@@ -174,6 +174,23 @@ export function getInstantEvent(id: string): InstantEvent | undefined {
   return getState().events.find((e) => e.id === id);
 }
 
+/** Public discovery listing — newest first, optional free-text (title/location) and vertical filters. */
+export function listInstantEvents(filter?: { q?: string; vertical?: VerticalId }): InstantEvent[] {
+  let events = getState().events;
+  if (filter?.vertical) {
+    events = events.filter((e) => e.vertical === filter.vertical);
+  }
+  if (filter?.q) {
+    const q = filter.q.trim().toLowerCase();
+    if (q) {
+      events = events.filter(
+        (e) => e.location.toLowerCase().includes(q) || e.title.toLowerCase().includes(q),
+      );
+    }
+  }
+  return [...events].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
 export function listRsvps(eventId: string): InstantRsvp[] {
   return getState().rsvps.filter((r) => r.eventId === eventId);
 }

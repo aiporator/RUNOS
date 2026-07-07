@@ -30,6 +30,7 @@ export default function MarketingNav({ anchorPrefix = '' }: MarketingNavProps) {
     { href: `${anchorPrefix}#surfaces`, text: 'Product' },
     { href: `${anchorPrefix}#pacer`, text: 'Pacer AI' },
     { href: '/new', text: 'Create event' },
+    { href: '/discover', text: 'Discover' },
     { href: '/pricing', text: 'Pricing' },
     { href: `${anchorPrefix}#faq`, text: 'FAQ' },
   ];

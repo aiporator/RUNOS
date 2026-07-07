@@ -75,6 +75,12 @@ export default function CreateEventForm() {
 
   useEffect(() => {
     setMyEvents(loadStored());
+    const params = new URLSearchParams(window.location.search);
+    const loc = params.get('location');
+    const vert = params.get('vertical');
+    if (loc) setLocation(loc);
+    if (vert && VERTICALS.some((v) => v.id === vert)) pickVertical(vert as VerticalId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const vertical = getVertical(verticalId);

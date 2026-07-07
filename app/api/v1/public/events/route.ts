@@ -1,9 +1,12 @@
+// GET  /api/v1/public/events — discover instant events. PUBLIC: no auth.
+//      ?q= filters by title/location substring, ?vertical= filters by vertical.
 // POST /api/v1/public/events — create an instant event. PUBLIC: no auth, no
 // account. This is the frictionless wedge — the whole point is zero setup.
-import { created, err, isRecord, parseBody } from '@/lib/api';
+import { created, err, isRecord, ok, paginate, parseBody } from '@/lib/api';
 import {
   createInstantEvent,
   FREE_CAPACITY,
+  listInstantEvents,
   type CreateInstantEventInput,
 } from '@/lib/instant';
 import { VERTICALS, type VerticalId } from '@/lib/verticals';
@@ -11,6 +14,31 @@ import { VERTICALS, type VerticalId } from '@/lib/verticals';
 export const dynamic = 'force-dynamic';
 
 const VERTICAL_IDS = VERTICALS.map((v) => v.id);
+
+export async function GET(req: Request): Promise<Response> {
+  const url = new URL(req.url);
+  const q = url.searchParams.get('q') ?? undefined;
+  const rawVertical = url.searchParams.get('vertical');
+  const vertical =
+    rawVertical && VERTICAL_IDS.includes(rawVertical as VerticalId)
+      ? (rawVertical as VerticalId)
+      : undefined;
+
+  const events = listInstantEvents({ q, vertical }).map((e) => ({
+    id: e.id,
+    title: e.title,
+    hostName: e.hostName,
+    vertical: e.vertical,
+    type: e.type,
+    date: e.date,
+    location: e.location,
+    capacity: e.capacity,
+    price: e.price,
+    public_url: `/e/${e.id}`,
+  }));
+  const { page, meta } = paginate(events, req);
+  return ok(page, meta);
+}
 
 export async function POST(req: Request): Promise<Response> {
   const parsed = await parseBody<CreateInstantEventInput>(req, (body) => {
