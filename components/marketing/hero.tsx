@@ -71,8 +71,9 @@ export default function Hero() {
           style={{ animationDelay: '0.55s' }}
         >
           RunOS replaces the spreadsheet, the group chat sprawl, and the ticketing tax with one
-          platform: members, events, money, sponsors, and an AI that plans your month. We run the
-          boring stuff so you can run the club.
+          platform: members, events, money, sponsors, and an AI that plans your month. It&apos;s
+          the internal OS your organizers actually run the club from — not another public app.
+          We run the boring stuff so you can run the club.
         </p>
         <div
           className="mk-fade-up flex flex-wrap items-center gap-4"
@@ -86,7 +87,11 @@ export default function Hero() {
           </Link>
         </div>
         <p className="mk-fade-up mt-3.5 text-[13px] text-muted" style={{ animationDelay: '0.9s' }}>
-          Free for clubs under 50 members. No credit card.
+          Free for clubs under 50 members — and free, full access, for our{' '}
+          <a href="#founding-partners" className="text-volt underline underline-offset-2">
+            first 50 founding partners
+          </a>
+          . No credit card.
         </p>
       </div>
 

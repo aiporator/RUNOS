@@ -32,6 +32,7 @@ export default function BookCallForm() {
   const [slots, setSlots] = useState<{ id: string; iso: string; label: string }[]>([]);
   const [slotIso, setSlotIso] = useState('');
   const [source, setSource] = useState('talk_to_us');
+  const [isFoundingPartner, setIsFoundingPartner] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
@@ -45,6 +46,7 @@ export default function BookCallForm() {
     if (org) setOrgName(org);
     if (vert && VERTICALS.some((v) => v.id === vert)) setVerticalId(vert as VerticalId);
     if (src) setSource(src);
+    if (src === 'founding_partner') setIsFoundingPartner(true);
   }, []);
 
   useEffect(() => {
@@ -139,12 +141,18 @@ export default function BookCallForm() {
 
       <main className="mx-auto max-w-[900px] px-6 pb-20 pt-12">
         <div className="fade-up">
+          {isFoundingPartner ? (
+            <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-volt/30 bg-volt/10 px-4 py-1.5 text-[12.5px] font-semibold text-volt">
+              Founding partner spot — free, full access
+            </span>
+          ) : null}
           <h1 className="font-display text-[clamp(28px,4.5vw,46px)] font-bold leading-[1.05] tracking-[-0.02em]">
             Let&apos;s talk. <span className="text-volt">Pick a time.</span>
           </h1>
           <p className="mt-3 max-w-[56ch] text-[15px] text-muted">
-            Founding-club pilots, Network-tier rollouts, brand partnerships — tell us where you
-            are and grab a slot. A real person confirms by email.
+            {isFoundingPartner
+              ? "You're one of our first 50 partners: free, full access, you own your data, and every public page you publish captures a lead. Tell us where you are and grab a slot."
+              : 'Founding-club pilots, Network-tier rollouts, brand partnerships — tell us where you are and grab a slot. A real person confirms by email.'}
           </p>
         </div>
 

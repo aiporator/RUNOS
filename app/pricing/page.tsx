@@ -4,6 +4,7 @@ import MarketingNav from '@/components/marketing/nav';
 import MarketingFooter from '@/components/marketing/footer';
 import Reveal from '@/components/marketing/reveal';
 import PricingSection from '@/components/marketing/pricing-section';
+import FoundingPartnersBand from '@/components/marketing/founding-partners';
 import FaqAccordion from '@/components/marketing/faq';
 import { PRICING_FAQS } from '@/components/marketing/data';
 import { arr, btnVolt, label } from '@/components/marketing/styles';
@@ -165,6 +166,7 @@ export default function PricingPage() {
     <main className="overflow-x-clip bg-bg text-paper">
       <MarketingNav anchorPrefix="/" />
       <PricingHero />
+      <FoundingPartnersBand anchorPrefix="/" showPricingLink={false} />
       <SoloBanner />
       <PricingSection full />
       <FeeExplainer />

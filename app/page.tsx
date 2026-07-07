@@ -4,6 +4,7 @@ import MarketingFooter from '@/components/marketing/footer';
 import Reveal from '@/components/marketing/reveal';
 import ParallaxBg from '@/components/marketing/parallax';
 import Hero from '@/components/marketing/hero';
+import FoundingPartnersBand from '@/components/marketing/founding-partners';
 import StatsSection from '@/components/marketing/stats';
 import SurfacesSection from '@/components/marketing/surfaces';
 import PacerSection from '@/components/marketing/pacer-chat';
@@ -257,6 +258,7 @@ export default function Home() {
     <main className="overflow-x-clip bg-bg text-paper">
       <MarketingNav />
       <Hero />
+      <FoundingPartnersBand />
       <StatsSection />
       <SurfacesSection />
       <StepsSection />
