@@ -204,3 +204,49 @@ export interface Integration {
   detail: string;
   connected: boolean;
 }
+
+// ---------------------------------------------------------------------------
+// Automations — "if this then that" over real store events. Triggers are
+// audit-log actions; steps execute against the live store when one fires.
+// ---------------------------------------------------------------------------
+
+export type AutomationTrigger =
+  | 'member.created'
+  | 'payment.succeeded'
+  | 'checkin.recorded'
+  | 'registration.created'
+  | 'sponsor.stage_changed'
+  | 'challenge.created';
+
+export type AutomationStepKind =
+  | 'send_receipt'
+  | 'send_message'
+  | 'add_tag'
+  | 'notify_staff'
+  | 'enroll_journey'
+  | 'update_leaderboard';
+
+export interface AutomationStep {
+  kind: AutomationStepKind;
+  /** Step parameter: message body, tag name, journey name — depends on kind. */
+  value?: string;
+}
+
+export interface Automation {
+  id: string;
+  name: string;
+  trigger: AutomationTrigger;
+  steps: AutomationStep[];
+  enabled: boolean;
+  runs: number;
+}
+
+export interface AutomationRun {
+  id: string;
+  automationId: string;
+  automationName: string;
+  /** Entity of the audit entry that fired the trigger. */
+  triggeredBy: string;
+  at: string;
+  steps: string[]; // human log lines, one per executed step
+}

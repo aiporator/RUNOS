@@ -1,8 +1,8 @@
 // Deterministic seed data for the demo club "Harbor City Runners".
 // All dates are relative to a fixed "today" so the demo always looks live.
 import type {
-  ActivityItem, Challenge, Club, ClubEvent, Integration, Journey, Member, MembershipPlan,
-  Payment, Perk, Registration, Sponsor, StaffMember, Vendor, WeeklyMetric,
+  ActivityItem, Automation, Challenge, Club, ClubEvent, Integration, Journey, Member,
+  MembershipPlan, Payment, Perk, Registration, Sponsor, StaffMember, Vendor, WeeklyMetric,
 } from './types';
 
 export const TODAY = new Date('2026-07-02T08:00:00Z');
@@ -65,6 +65,39 @@ export const integrations: Integration[] = [
   { id: 'int_mailchimp', name: 'Mailchimp', detail: 'Email campaigns', connected: false },
   { id: 'int_slack', name: 'Slack', detail: 'Organizer alerts', connected: false },
   { id: 'int_discord', name: 'Discord', detail: 'Community server', connected: false },
+];
+
+export const automations: Automation[] = [
+  {
+    id: 'atm_001',
+    name: 'Payment receipt & coach ping',
+    trigger: 'payment.succeeded',
+    steps: [
+      { kind: 'send_receipt' },
+      { kind: 'notify_staff', value: 'Payment collected — receipt sent automatically' },
+    ],
+    enabled: true,
+    runs: 0,
+  },
+  {
+    id: 'atm_002',
+    name: 'Welcome new members',
+    trigger: 'member.created',
+    steps: [
+      { kind: 'send_message', value: 'Welcome to Harbor City Runners! Your first Saturday Long Run is on us — see you at the pier, 07:00.' },
+      { kind: 'add_tag', value: 'welcome-flow' },
+    ],
+    enabled: true,
+    runs: 0,
+  },
+  {
+    id: 'atm_003',
+    name: 'Check-in streak points',
+    trigger: 'checkin.recorded',
+    steps: [{ kind: 'update_leaderboard' }],
+    enabled: false,
+    runs: 0,
+  },
 ];
 
 const firstNames = ['Maya', 'Leo', 'Priya', 'Emre', 'Sofia', 'Jonas', 'Amara', 'Tomas', 'Ines', 'Ravi', 'Freya', 'Marco', 'Yuki', 'Nadia', 'Owen', 'Lena', 'Kofi', 'Elif', 'Bram', 'Zoe', 'Hugo', 'Alba', 'Niko', 'Sara', 'Femke', 'Diego', 'Anouk', 'Mateo', 'Livia', 'Casper', 'Noor', 'Ilya', 'Greta', 'Sam', 'Dara', 'Rosa', 'Finn', 'Aiko', 'Jules', 'Mira', 'Otis', 'Vera', 'Karl', 'Tessa', 'Omar', 'Ida', 'Ben', 'Luna'];

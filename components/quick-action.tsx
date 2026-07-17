@@ -6,6 +6,7 @@
 // component re-reads the live store — no separate internal API surface.
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent, type ReactNode } from 'react';
+import { enqueueOffline, isOffline } from '@/lib/offline';
 import { useToast, type ToastAction } from './toast';
 
 const AUTH_HEADERS = { 'content-type': 'application/json', authorization: 'Bearer ros_demo' };
@@ -24,7 +25,15 @@ const inputCls =
   'w-full rounded-xl border border-line bg-bg-3 px-3.5 py-2.5 text-[13.5px] text-paper outline-none transition placeholder:text-muted-2 focus:border-volt/60';
 const labelCls = 'mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.1em] text-muted';
 
-async function postJson(endpoint: string, method: string, body?: unknown): Promise<{ ok: boolean; message?: string }> {
+async function postJson(
+  endpoint: string,
+  method: string,
+  body?: unknown,
+): Promise<{ ok: boolean; queued?: boolean; message?: string }> {
+  if (isOffline()) {
+    enqueueOffline({ endpoint, method, body });
+    return { ok: true, queued: true };
+  }
   try {
     const res = await fetch(endpoint, {
       method,
@@ -87,6 +96,10 @@ export function QuickActionButton({
     const result = await postJson(endpoint, method, body);
     if (!result.ok) {
       toast({ message: result.message ?? 'Something went wrong.', tone: 'error' });
+      return;
+    }
+    if (result.queued) {
+      toast({ message: 'Working offline — change queued, syncs when you’re back.', tone: 'info' });
       return;
     }
     toast({ message, undoable: true, actions: successActions });
@@ -205,6 +218,10 @@ export function InstantActionButton({
     setBusy(false);
     if (!result.ok) {
       toast({ message: result.message ?? 'Something went wrong.', tone: 'error' });
+      return;
+    }
+    if (result.queued) {
+      toast({ message: 'Working offline — change queued, syncs when you’re back.', tone: 'info' });
       return;
     }
     if (successMessage) toast({ message: successMessage, undoable: true });

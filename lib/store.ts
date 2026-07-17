@@ -4,6 +4,7 @@
 // the repository interface for the future Postgres swap
 // (see docs/03-architecture/database-schema.md).
 import {
+  automations as seedAutomations,
   challenges as seedChallenges,
   club as seedClub,
   events as seedEvents,
@@ -20,6 +21,10 @@ import {
   TODAY,
 } from './seed';
 import type {
+  Automation,
+  AutomationRun,
+  AutomationStep,
+  AutomationTrigger,
   Challenge,
   Club,
   ClubEvent,
@@ -166,6 +171,18 @@ export interface InviteStaffInput {
   roles: string[];
 }
 
+export interface BulkMemberInput {
+  ids: string[];
+  action: 'status' | 'tag' | 'tier' | 'message';
+  value: string;
+}
+
+export interface CreateAutomationInput {
+  name: string;
+  trigger: AutomationTrigger;
+  steps: AutomationStep[];
+}
+
 export type RegistrationResult =
   | { kind: 'registered'; registration: Registration; event: ClubEvent }
   | { kind: 'waitlisted'; position: number; event: ClubEvent }
@@ -230,6 +247,8 @@ interface StoreState {
   staff: StaffMember[];
   integrations: Integration[];
   memberNotes: MemberNote[];
+  automations: Automation[];
+  automationRuns: AutomationRun[];
   counters: Record<string, number>;
   auditSeq: number;
 }
@@ -240,6 +259,7 @@ export interface RunosStore {
   getMember(id: string): Member | undefined;
   createMember(input: CreateMemberInput): Member;
   updateMember(id: string, patch: UpdateMemberInput): Member | undefined;
+  bulkMembers(input: BulkMemberInput): number;
   // events
   listEvents(filter?: EventFilter): ClubEvent[];
   getEvent(id: string): ClubEvent | undefined;
@@ -279,6 +299,11 @@ export interface RunosStore {
   inviteStaff(input: InviteStaffInput): StaffMember;
   listIntegrations(): Integration[];
   toggleIntegration(id: string): Integration | undefined;
+  // automations — "if this then that" over real store events
+  listAutomations(): Automation[];
+  listAutomationRuns(): AutomationRun[];
+  createAutomation(input: CreateAutomationInput): Automation;
+  setAutomationEnabled(id: string, enabled: boolean): Automation | undefined;
   // analytics & audit
   metrics(): Metrics;
   listAudit(): AuditEntry[];
@@ -309,6 +334,8 @@ function createStore(): RunosStore {
     staff: deepCopy(seedStaff),
     integrations: deepCopy(seedIntegrations),
     memberNotes: [],
+    automations: deepCopy(seedAutomations),
+    automationRuns: [],
     counters: {
       mem: seedMembers.length,
       evt: seedEvents.length,
@@ -321,6 +348,8 @@ function createStore(): RunosStore {
       spo: seedSponsors.length,
       stf: seedStaff.length,
       note: 0,
+      atm: seedAutomations.length,
+      run: 0,
     },
     auditSeq: 0,
   };
@@ -366,6 +395,8 @@ function createStore(): RunosStore {
     state.staff = snap.staff;
     state.integrations = snap.integrations;
     state.memberNotes = snap.memberNotes;
+    state.automations = snap.automations;
+    state.automationRuns = snap.automationRuns;
     state.counters = snap.counters;
     state.auditSeq = snap.auditSeq;
   }
@@ -381,7 +412,122 @@ function createStore(): RunosStore {
       at: new Date(TODAY.getTime() + state.auditSeq * 1000).toISOString(),
     };
     state.auditLog.push(entry);
+    runAutomations(entry);
     return entry;
+  }
+
+  // -- automation engine ------------------------------------------------------
+  // Fires enabled automations whose trigger matches a freshly recorded audit
+  // action. Steps write to state directly (recording their own audit entries
+  // for the activity feed) — the depth guard stops those entries from firing
+  // further automations, so a receipt can never trigger a receipt.
+  let automationDepth = 0;
+
+  function resolveMemberId(entity: string): string | undefined {
+    if (entity.startsWith('mem_')) return entity;
+    if (entity.startsWith('pay_')) {
+      return state.payments.find((p) => p.id === entity)?.memberId;
+    }
+    if (entity.startsWith('reg_')) {
+      return state.registrations.find((r) => r.id === entity)?.memberId;
+    }
+    // waitlist audit entities look like "evt_001:mem_002"
+    const composite = entity.split(':').find((part) => part.startsWith('mem_'));
+    return composite;
+  }
+
+  function executeStep(step: AutomationStep, entry: AuditEntry, log: string[]): void {
+    const memberId = resolveMemberId(entry.entity);
+    const member = memberId ? state.members.find((m) => m.id === memberId) : undefined;
+    switch (step.kind) {
+      case 'send_receipt': {
+        if (!member) return void log.push('Receipt skipped — no member on this event');
+        const payment = entry.entity.startsWith('pay_')
+          ? state.payments.find((p) => p.id === entry.entity)
+          : undefined;
+        const amount = payment ? `$${payment.amount.toFixed(2)}` : 'your payment';
+        state.memberNotes.push({
+          id: nextId('note'),
+          memberId: member.id,
+          kind: 'message',
+          body: `Receipt: ${amount} received${payment ? ` for "${payment.description}"` : ''}. Thanks, ${member.name.split(' ')[0]}!`,
+          at: new Date().toISOString(),
+        });
+        recordAudit('member.messaged', member.id);
+        log.push(`Receipt sent to ${member.name}`);
+        return;
+      }
+      case 'send_message': {
+        if (!member) return void log.push('Message skipped — no member on this event');
+        state.memberNotes.push({
+          id: nextId('note'),
+          memberId: member.id,
+          kind: 'message',
+          body: step.value ?? 'Hello from the club!',
+          at: new Date().toISOString(),
+        });
+        recordAudit('member.messaged', member.id);
+        log.push(`Message sent to ${member.name}`);
+        return;
+      }
+      case 'add_tag': {
+        if (!member || !step.value) return void log.push('Tag skipped');
+        if (!member.tags.includes(step.value)) member.tags.push(step.value);
+        recordAudit('member.updated', member.id);
+        log.push(`Tagged ${member.name} "${step.value}"`);
+        return;
+      }
+      case 'notify_staff': {
+        recordAudit('staff.notified', entry.entity);
+        log.push(`Staff notified: ${step.value ?? entry.action}`);
+        return;
+      }
+      case 'enroll_journey': {
+        const journey =
+          state.journeys.find((j) => j.name.toLowerCase() === (step.value ?? '').toLowerCase()) ??
+          state.journeys.find((j) => j.status === 'active');
+        if (!journey) return void log.push('Journey skipped — none active');
+        journey.enrolled += 1;
+        recordAudit('journey.enrolled', journey.id);
+        log.push(`Enrolled in "${journey.name}"`);
+        return;
+      }
+      case 'update_leaderboard': {
+        const challenge = state.challenges[0];
+        if (!challenge || !member) return void log.push('Leaderboard skipped');
+        const leader = challenge.leaders.find((l) => l.memberId === member.id);
+        if (leader) leader.value += 1;
+        else challenge.leaders.push({ memberId: member.id, value: 1 });
+        recordAudit('challenge.updated', challenge.id);
+        log.push(`Leaderboard bumped for ${member.name}`);
+        return;
+      }
+    }
+  }
+
+  function runAutomations(entry: AuditEntry): void {
+    if (automationDepth > 0) return;
+    const matching = state.automations.filter((a) => a.enabled && a.trigger === entry.action);
+    if (matching.length === 0) return;
+    automationDepth += 1;
+    try {
+      for (const automation of matching) {
+        const log: string[] = [];
+        for (const step of automation.steps) executeStep(step, entry, log);
+        automation.runs += 1;
+        state.automationRuns.push({
+          id: nextId('run'),
+          automationId: automation.id,
+          automationName: automation.name,
+          triggeredBy: entry.entity,
+          at: new Date(TODAY.getTime() + state.auditSeq * 1000).toISOString(),
+          steps: log,
+        });
+        recordAudit('automation.ran', automation.id);
+      }
+    } finally {
+      automationDepth -= 1;
+    }
   }
 
   const store: RunosStore = {
@@ -442,6 +588,40 @@ function createStore(): RunosStore {
       if (patch.tier !== undefined) member.tier = patch.tier;
       recordAudit('member.updated', id);
       return member;
+    },
+
+    bulkMembers(input: BulkMemberInput): number {
+      const targets = state.members.filter((m) => input.ids.includes(m.id));
+      if (targets.length === 0) return 0;
+      for (const member of targets) {
+        switch (input.action) {
+          case 'status':
+            member.status = input.value as MemberStatus;
+            break;
+          case 'tier':
+            member.tier = input.value as Member['tier'];
+            break;
+          case 'tag':
+            if (!member.tags.includes(input.value)) member.tags.push(input.value);
+            break;
+          case 'message':
+            state.memberNotes.push({
+              id: nextId('note'),
+              memberId: member.id,
+              kind: 'message',
+              body: input.value,
+              at: new Date().toISOString(),
+            });
+            break;
+        }
+      }
+      // One audit entry for the whole batch — the activity feed shows the
+      // operation, not N near-identical rows.
+      recordAudit(
+        input.action === 'message' ? 'member.bulk_messaged' : 'member.bulk_updated',
+        `${targets.length} members`,
+      );
+      return targets.length;
     },
 
     // -- events ---------------------------------------------------------------
@@ -812,6 +992,37 @@ function createStore(): RunosStore {
       return integration;
     },
 
+    // -- automations ------------------------------------------------------------
+    listAutomations(): Automation[] {
+      return state.automations;
+    },
+
+    listAutomationRuns(): AutomationRun[] {
+      return [...state.automationRuns].reverse();
+    },
+
+    createAutomation(input: CreateAutomationInput): Automation {
+      const automation: Automation = {
+        id: nextId('atm'),
+        name: input.name,
+        trigger: input.trigger,
+        steps: input.steps,
+        enabled: true,
+        runs: 0,
+      };
+      state.automations.push(automation);
+      recordAudit('automation.created', automation.id);
+      return automation;
+    },
+
+    setAutomationEnabled(id: string, enabled: boolean): Automation | undefined {
+      const automation = state.automations.find((a) => a.id === id);
+      if (!automation) return undefined;
+      automation.enabled = enabled;
+      recordAudit(enabled ? 'automation.enabled' : 'automation.disabled', id);
+      return automation;
+    },
+
     // -- analytics & audit ------------------------------------------------------
     metrics(): Metrics {
       const mrr = seedMembershipPlans.reduce(
@@ -896,6 +1107,9 @@ function createStore(): RunosStore {
     cancelDeactivation: 'Club deactivation cancelled',
     inviteStaff: 'Staff invited',
     toggleIntegration: 'Integration toggled',
+    bulkMembers: 'Bulk member action',
+    createAutomation: 'Automation created',
+    setAutomationEnabled: 'Automation toggled',
   };
   for (const [name, label] of Object.entries(MUTATION_LABELS) as [keyof RunosStore, string][]) {
     const original = store[name] as (...args: unknown[]) => unknown;

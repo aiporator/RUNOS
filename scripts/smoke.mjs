@@ -44,7 +44,7 @@ const PAGES_200 = ['/', '/pricing', '/for-gyms', '/for-workshops', '/for-runners
   '/discover', '/my-runs', '/workshops', '/workshops/pottery', '/workshops/woodworking', '/workshops/textile',
   '/e/ie_demo1', '/c/harbor-city-runners', '/c/harbor-city-runners/evt_003',
   '/app', '/app/community', '/app/events', '/app/events/calendar', '/app/events/evt_001/checkin',
-  '/app/events/evt_003/promote', '/app/intelligence', '/robots.txt', '/sitemap.xml', '/openapi.json'];
+  '/app/events/evt_003/promote', '/app/intelligence', '/app/automations', '/robots.txt', '/sitemap.xml', '/openapi.json'];
 for (const p of PAGES_200) {
   check(`GET ${p} → 200`, (await page(p)) === 200);
 }
@@ -185,6 +185,86 @@ check('GET /workshops/nope → 404', (await page('/workshops/nope')) === 404);
 
   const shortQ = await get('/api/v1/search?q=a', AUTH);
   check('search rejects short query', shortQ.status === 400);
+}
+
+// ---------- V5: copilot, bulk actions, automations ----------
+{
+  const noAuth = await post('/api/v1/copilot', { query: 'who has not paid?' }, { 'Content-Type': 'application/json' });
+  check('copilot requires auth', noAuth.status === 401);
+
+  const badBody = await post('/api/v1/copilot', { nope: true });
+  check('copilot rejects missing query', badBody.status === 400);
+
+  const unpaid = await post('/api/v1/copilot', { query: 'who has not paid this month?' });
+  check('copilot unpaid intent', unpaid.status === 200 && unpaid.body?.data?.intent === 'unpaid'
+    && typeof unpaid.body.data.text === 'string' && Array.isArray(unpaid.body.data.actions));
+
+  const attendance = await post('/api/v1/copilot', { query: 'why is attendance down?' });
+  check('copilot attendance intent', attendance.status === 200 && attendance.body?.data?.intent === 'attendance');
+
+  const quiet = await post('/api/v1/copilot', { query: 'who has gone quiet lately?' });
+  check('copilot inactive intent has real action', quiet.status === 200 && quiet.body?.data?.intent === 'inactive'
+    && quiet.body.data.actions.every((a) => a.href || a.endpoint));
+}
+
+{
+  const membersRes = await get('/api/v1/members?limit=2', AUTH);
+  const ids = (membersRes.body?.data ?? []).map((m) => m.id);
+  check('two members fetched for bulk test', ids.length === 2);
+
+  const badAction = await post('/api/v1/members/bulk', { ids, action: 'explode', value: 'x' });
+  check('bulk rejects unknown action', badAction.status === 400);
+
+  const badStatus = await post('/api/v1/members/bulk', { ids, action: 'status', value: 'vip' });
+  check('bulk rejects invalid status value', badStatus.status === 400);
+
+  const bulk = await post('/api/v1/members/bulk', { ids, action: 'status', value: 'at-risk' });
+  check('bulk status update affects both', bulk.status === 201 && bulk.body?.data?.affected === 2);
+  await post('/api/v1/undo', {});
+
+  const msg = await post('/api/v1/members/bulk', { ids, action: 'message', value: 'Smoke bulk hello' });
+  check('bulk message affects both', msg.status === 201 && msg.body?.data?.affected === 2);
+  const audit = await get('/api/v1/audit?limit=3', AUTH);
+  check('bulk message is one audit entry', audit.status === 200
+    && audit.body?.data?.some((e) => e.action === 'member.bulk_messaged'));
+  await post('/api/v1/undo', {});
+}
+
+{
+  const list = await get('/api/v1/automations', AUTH);
+  check('automations list has seeds', list.status === 200
+    && list.body?.data?.automations?.some((a) => a.id === 'atm_001' && a.enabled));
+
+  const runsBefore = list.body?.data?.automations?.find((a) => a.id === 'atm_001')?.runs ?? 0;
+  const pay = await post('/api/v1/payments', { member_id: 'mem_001', kind: 'merch', description: 'Smoke automation tee', amount: 25 });
+  check('payment recorded (automation trigger)', pay.status === 201);
+
+  const after = await get('/api/v1/automations', AUTH);
+  const atm1 = after.body?.data?.automations?.find((a) => a.id === 'atm_001');
+  check('payment triggered receipt automation', after.status === 200 && atm1?.runs === runsBefore + 1);
+  check('automation run logged with steps', after.body?.data?.runs?.[0]?.automationId === 'atm_001'
+    && after.body.data.runs[0].steps.length === 2);
+
+  const notes = await get('/api/v1/members/mem_001/notes', AUTH);
+  check('receipt note reached the member', notes.status === 200
+    && notes.body?.data?.some((n) => String(n.body ?? n.text ?? '').includes('Receipt: $25')));
+  await post('/api/v1/undo', {});
+
+  const toggleRes = await fetch(BASE + '/api/v1/automations/atm_003', {
+    method: 'PATCH', headers: AUTH, body: JSON.stringify({ enabled: true }),
+  });
+  const toggleBody = await toggleRes.json().catch(() => null);
+  check('automation toggle enables', toggleRes.status === 200 && toggleBody?.data?.enabled === true);
+  await post('/api/v1/undo', {});
+
+  const createBad = await post('/api/v1/automations', { name: 'x', trigger: 'nope', steps: [] });
+  check('automation create validates trigger', createBad.status === 400);
+
+  const createOk = await post('/api/v1/automations', {
+    name: 'Smoke welcome', trigger: 'member.created', steps: [{ kind: 'add_tag', value: 'smoke' }],
+  });
+  check('automation created', createOk.status === 201 && createOk.body?.data?.enabled === true);
+  await post('/api/v1/undo', {});
 }
 
 console.log(`\nSmoke: ${passed} passed, ${failed} failed`);

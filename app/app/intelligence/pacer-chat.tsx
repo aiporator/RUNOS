@@ -1,14 +1,21 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Send, Sparkles } from 'lucide-react';
-import { atRiskMembers, club, mrr, totalPerkRedemptions, weeklyMetrics } from '@/lib/data';
-import { cn, money, pct, relativeDays } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui';
+import { useToast } from '@/components/toast';
 
-interface PacerReply {
-  text: string;
-  actions?: string[];
+const AUTH_HEADERS = { 'content-type': 'application/json', authorization: 'Bearer ros_demo' };
+
+interface CopilotAction {
+  label: string;
+  href?: string;
+  endpoint?: string;
+  method?: 'POST' | 'PATCH';
+  body?: Record<string, unknown>;
+  successMessage?: string;
 }
 
 interface ChatMessage {
@@ -16,87 +23,22 @@ interface ChatMessage {
   role: 'user' | 'pacer';
   text: string;
   done: boolean;
-  actions?: string[];
+  actions?: CopilotAction[];
 }
 
-const SUGGESTIONS = ['Plan October', "Who's at risk of quitting?", 'Draft sponsor proposal', 'Forecast revenue'];
-
-const risk = atRiskMembers();
-const top3 = risk.slice(0, 3);
-const currentMrr = mrr();
-const forecastMrr = Math.round(currentMrr * 1.06);
-const now = weeklyMetrics[weeklyMetrics.length - 1];
-
-const REPLIES: Record<'plan' | 'risk' | 'sponsor' | 'revenue' | 'fallback', PacerReply> = {
-  plan: {
-    text:
-      `Here's my October draft for ${club().name}:\n\n` +
-      `• 4 Saturday long runs — Oct 3, 10, 17 & 24, rotating Harbor Loop 16K and Canal Ring 14K\n` +
-      `• 10K Time Trial — Oct 18, chip-timed, capacity 120\n` +
-      `• Halloween Social Run — Oct 30, easy 5K in costume, Dock 7 afterparty\n\n` +
-      `Based on your last 12 weeks (attendance grew from 51 to a 74 peak), I forecast 62–75 runners per Saturday. ` +
-      `I've drafted all five event pages, the newsletter, and an IG carousel. Publish?`,
-    actions: ['Publish drafts', 'Edit plan'],
-  },
-  risk: {
-    text:
-      `${risk.length} members are currently flagged at-risk. Top 3 by churn risk:\n\n` +
-      top3
-        .map(
-          (m, i) =>
-            `${i + 1}. ${m.name} — ${pct(m.churnRisk)} risk, last seen ${relativeDays(m.lastSeen)}, attendance ${pct(m.attendanceRate)}`,
-        )
-        .join('\n') +
-      `\n\nThe common pattern is a 3+ week attendance gap. The Win-back journey converts 41% back to an RSVP within 10 days — ` +
-      `or I can draft personal "we miss you" notes from Maya for each of them.`,
-    actions: ['Enroll in Win-back', 'Draft personal notes'],
-  },
-  sponsor: {
-    text:
-      `Draft sponsor proposal — ${club().name}:\n\n` +
-      `Verified numbers: ${club().memberCount} members, 71% monthly active, 38 events last quarter, ` +
-      `${totalPerkRedemptions()} perk redemptions all-time.\n\n` +
-      `• Community — €1,500/yr: logo on all event pages + one perk slot\n` +
-      `• Partner — €4,000/yr: above + demo activations at 2 events + newsletter feature\n` +
-      `• Title — €9,000/yr: above + naming rights to the 10K Time Trial + quarterly impact report\n\n` +
-      `Export as PDF?`,
-    actions: ['Export as PDF', 'Edit tiers'],
-  },
-  revenue: {
-    text:
-      `MRR is ${money(currentMrr)} today. My forecast for next month is ${money(forecastMrr)} (+6%). Drivers:\n\n` +
-      `• 3–5 new members joining weekly, mostly on the €12 monthly plan\n` +
-      `• Annual renewals converting at 86% through the renewal journey\n` +
-      `• Dunning recovering 71% of failed payments within 7 days\n` +
-      `• 10K Time Trial tickets adding ~€260 one-off\n\n` +
-      `Main risk: the ${risk.length} at-risk members. The Win-back journey is already on it.`,
-    actions: ['See full forecast'],
-  },
-  fallback: {
-    text:
-      `Here's what I found across your club's data: ${club().memberCount} members, with ${now.wacm} active this week — a record. ` +
-      `MRR is ${money(currentMrr)}, and the 10K Time Trial is at 87/120 registered, pacing to sell out around Jul 12. ` +
-      `Ask me to plan a month, forecast revenue, draft a sponsor proposal, or dig into any member or event.`,
-  },
-};
-
-function replyFor(text: string): PacerReply {
-  const t = text.toLowerCase();
-  if (t.includes('october') || t.includes('plan')) return REPLIES.plan;
-  if (t.includes('risk') || t.includes('quit') || t.includes('churn')) return REPLIES.risk;
-  if (t.includes('sponsor') || t.includes('proposal')) return REPLIES.sponsor;
-  if (t.includes('revenue') || t.includes('forecast') || t.includes('mrr')) return REPLIES.revenue;
-  return REPLIES.fallback;
-}
+const SUGGESTIONS = ['Who hasn’t paid?', 'Who’s gone quiet?', 'Why is attendance down?', 'Plan next month'];
 
 export function PacerChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [typing, setTyping] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [runningAction, setRunningAction] = useState<string | null>(null);
   const [input, setInput] = useState('');
   const idRef = useRef(0);
   const timersRef = useRef<number[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const toast = useToast();
 
   useEffect(() => {
     return () => {
@@ -112,7 +54,29 @@ export function PacerChat() {
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, typing]);
 
-  function send(raw: string) {
+  function reveal(msgId: number, text: string, actions: CopilotAction[]) {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) {
+      setMessages((m) => [...m, { id: msgId, role: 'pacer', text, done: true, actions }]);
+      setBusy(false);
+      return;
+    }
+    setMessages((m) => [...m, { id: msgId, role: 'pacer', text: '', done: false, actions }]);
+    let i = 0;
+    const interval = window.setInterval(() => {
+      i = Math.min(text.length, i + 3);
+      const finished = i >= text.length;
+      const slice = text.slice(0, i);
+      setMessages((m) => m.map((msg) => (msg.id === msgId ? { ...msg, text: slice, done: finished } : msg)));
+      if (finished) {
+        window.clearInterval(interval);
+        setBusy(false);
+      }
+    }, 16);
+    timersRef.current.push(interval);
+  }
+
+  async function send(raw: string) {
     const text = raw.trim();
     if (!text || busy) return;
     setBusy(true);
@@ -120,34 +84,52 @@ export function PacerChat() {
     setMessages((m) => [...m, { id: ++idRef.current, role: 'user', text, done: true }]);
     setTyping(true);
 
-    const reply = replyFor(text);
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    const timeout = window.setTimeout(() => {
+    try {
+      const res = await fetch('/api/v1/copilot', {
+        method: 'POST',
+        headers: AUTH_HEADERS,
+        body: JSON.stringify({ query: text }),
+      });
+      const json = await res.json();
       setTyping(false);
-      const msgId = ++idRef.current;
-
-      if (reduced) {
-        setMessages((m) => [...m, { id: msgId, role: 'pacer', text: reply.text, done: true, actions: reply.actions }]);
-        setBusy(false);
+      if (!res.ok) {
+        reveal(++idRef.current, json?.error?.message ?? 'Something went wrong — try again.', []);
         return;
       }
+      reveal(++idRef.current, json.data.text as string, (json.data.actions ?? []) as CopilotAction[]);
+    } catch {
+      setTyping(false);
+      reveal(++idRef.current, 'I couldn’t reach the club data just now — try again in a moment.', []);
+    }
+  }
 
-      setMessages((m) => [...m, { id: msgId, role: 'pacer', text: '', done: false, actions: reply.actions }]);
-      let i = 0;
-      const interval = window.setInterval(() => {
-        i = Math.min(reply.text.length, i + 2); // ~8ms per character
-        const finished = i >= reply.text.length;
-        const slice = reply.text.slice(0, i);
-        setMessages((m) => m.map((msg) => (msg.id === msgId ? { ...msg, text: slice, done: finished } : msg)));
-        if (finished) {
-          window.clearInterval(interval);
-          setBusy(false);
-        }
-      }, 16);
-      timersRef.current.push(interval);
-    }, 1000);
-    timersRef.current.push(timeout);
+  async function runAction(msgId: number, action: CopilotAction) {
+    if (action.href) {
+      router.push(action.href);
+      return;
+    }
+    if (!action.endpoint) return;
+    const key = `${msgId}:${action.label}`;
+    if (runningAction) return;
+    setRunningAction(key);
+    try {
+      const res = await fetch(action.endpoint, {
+        method: action.method ?? 'POST',
+        headers: AUTH_HEADERS,
+        body: action.body ? JSON.stringify(action.body) : undefined,
+      });
+      const json = await res.json().catch(() => null);
+      if (res.ok) {
+        toast({ message: action.successMessage ?? `${action.label} — done`, tone: 'success', undoable: true });
+        router.refresh();
+      } else {
+        toast({ message: json?.error?.message ?? `${action.label} failed`, tone: 'error' });
+      }
+    } catch {
+      toast({ message: `${action.label} failed — network error`, tone: 'error' });
+    } finally {
+      setRunningAction(null);
+    }
   }
 
   return (
@@ -177,8 +159,8 @@ export function PacerChat() {
               <Sparkles size={14} className="text-volt" /> Ask Pacer anything about your club
             </div>
             <p className="text-[12.5px] leading-relaxed text-muted-2">
-              Plans, forecasts, drafts, and member insights — every answer is computed from your own members, events,
-              and payments.
+              Every answer is computed live from your own members, events, and payments — and comes with buttons that
+              actually do the work.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               {SUGGESTIONS.map((s) => (
@@ -210,21 +192,27 @@ export function PacerChat() {
               {msg.done && msg.actions && msg.actions.length > 0 && (
                 <div className="mt-2.5">
                   <div className="flex flex-wrap gap-2">
-                    {msg.actions.map((a, i) => (
-                      <button
-                        key={a}
-                        className={cn(
-                          'rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold transition',
-                          i === 0
-                            ? 'bg-volt text-ink hover:shadow-[0_6px_20px_rgba(205,251,80,0.3)]'
-                            : 'border border-line text-paper/85 hover:border-volt/40 hover:text-volt',
-                        )}
-                      >
-                        {a}
-                      </button>
-                    ))}
+                    {msg.actions.map((a, i) => {
+                      const key = `${msg.id}:${a.label}`;
+                      const running = runningAction === key;
+                      return (
+                        <button
+                          key={a.label}
+                          onClick={() => runAction(msg.id, a)}
+                          disabled={runningAction !== null}
+                          className={cn(
+                            'rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold transition disabled:opacity-50',
+                            i === 0
+                              ? 'bg-volt text-ink hover:shadow-[0_6px_20px_rgba(205,251,80,0.3)]'
+                              : 'border border-line text-paper/85 hover:border-volt/40 hover:text-volt',
+                          )}
+                        >
+                          {running ? 'Working…' : a.label}
+                        </button>
+                      );
+                    })}
                   </div>
-                  <div className="mt-1.5 text-[10.5px] text-muted-2">You review everything before it&rsquo;s sent.</div>
+                  <div className="mt-1.5 text-[10.5px] text-muted-2">Every button runs a real action — undo included.</div>
                 </div>
               )}
               {msg.done && (
@@ -254,7 +242,7 @@ export function PacerChat() {
         className="flex items-center gap-2 border-t border-line px-4 py-3.5"
         onSubmit={(e) => {
           e.preventDefault();
-          send(input);
+          void send(input);
         }}
       >
         <input

@@ -2,8 +2,9 @@ import Link from 'next/link';
 import {
   ambassadorCandidates, atRiskMembers, mrr, upcomingEvents, weeklyMetrics,
 } from '@/lib/data';
+import { getStore } from '@/lib/store';
 import { formatDate, money, pct, relativeDays } from '@/lib/utils';
-import { Avatar, Badge, Card, CardTitle, PageHeader, Stat } from '@/components/ui';
+import { Avatar, Badge, Card, CardTitle, PageHeader, ProgressBar, Stat } from '@/components/ui';
 import { RevenueChart, WacmAttendanceChart } from './charts';
 import { PacerChat } from './pacer-chat';
 
@@ -22,6 +23,18 @@ export default function IntelligencePage() {
   const ambassadors = ambassadorCandidates().slice(0, 3);
   const predicted = upcomingEvents().filter((e) => e.status === 'published' && e.predictedAttendance);
   const forecastMrr = Math.round(mrr() * 1.06);
+
+  const store = getStore();
+  const audit = store.listAudit();
+  const automationRuns = store.listAutomationRuns();
+  const byCategory = new Map<string, number>();
+  for (const entry of audit) {
+    const category = entry.action.split('.')[0];
+    byCategory.set(category, (byCategory.get(category) ?? 0) + 1);
+  }
+  const topCategories = [...byCategory.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const maxCategory = topCategories[0]?.[1] ?? 1;
+  const automatedSteps = automationRuns.reduce((sum, r) => sum + r.steps.length, 0);
 
   return (
     <div>
@@ -132,6 +145,46 @@ export default function IntelligencePage() {
                 <p className="mt-3 text-[11px] leading-relaxed text-muted-2">
                   Community score ≥ 78 and not yet an ambassador. Pacer can send invites.
                 </p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="fade-up-4">
+            <CardTitle action={<Badge tone="info">live from the audit log</Badge>}>Product analytics</CardTitle>
+            <div className="grid gap-6 md:grid-cols-[1.2fr_1fr]">
+              <div>
+                <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-2">
+                  Actions by area
+                </div>
+                {topCategories.length === 0 ? (
+                  <p className="text-[12.5px] text-muted-2">
+                    No activity recorded yet — every create, update, and check-in lands here.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {topCategories.map(([category, count]) => (
+                      <div key={category} className="flex items-center gap-3">
+                        <span className="w-24 flex-none text-[12.5px] font-medium capitalize">{category}</span>
+                        <div className="flex-1">
+                          <ProgressBar value={count / maxCategory} tone="volt" />
+                        </div>
+                        <span className="w-8 flex-none text-right text-[12.5px] text-muted">{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="space-y-4">
+                <div className="rounded-xl border border-line bg-bg-3 px-4 py-3.5">
+                  <div className="font-display text-[22px] font-semibold text-volt">{audit.length}</div>
+                  <div className="text-[11.5px] text-muted">actions recorded this session</div>
+                </div>
+                <div className="rounded-xl border border-line bg-bg-3 px-4 py-3.5">
+                  <div className="font-display text-[22px] font-semibold text-volt">{automatedSteps}</div>
+                  <div className="text-[11.5px] text-muted">
+                    steps handled by <Link href="/app/automations" className="font-semibold text-volt hover:underline">automations</Link> — work you didn&rsquo;t do
+                  </div>
+                </div>
               </div>
             </div>
           </Card>

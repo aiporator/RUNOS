@@ -93,14 +93,14 @@ export function ProgressBar({ value, tone = 'volt' }: { value: number; tone?: 'v
   );
 }
 
-export function Table({ head, children }: { head: string[]; children: ReactNode }) {
+export function Table({ head, children }: { head: ReactNode[]; children: ReactNode }) {
   return (
     <div className="thin-scroll overflow-x-auto">
       <table className="w-full min-w-[560px] text-left text-sm">
         <thead>
           <tr className="border-b border-line text-[11px] uppercase tracking-[0.1em] text-muted-2">
-            {head.map((h) => (
-              <th key={h} className="pb-3 pr-4 font-semibold">{h}</th>
+            {head.map((h, i) => (
+              <th key={typeof h === 'string' ? h : i} className="pb-3 pr-4 font-semibold">{h}</th>
             ))}
           </tr>
         </thead>

@@ -8,6 +8,7 @@ import {
   Megaphone, QrCode, Rocket, Search, Settings2, Sparkles, Trophy, UserPlus, Users, Wallet, X, Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/components/toast';
 
 const NAV = [
   { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
@@ -18,6 +19,7 @@ const NAV = [
   { href: '/app/engage', label: 'Engage', icon: Trophy },
   { href: '/app/partners', label: 'Partners', icon: Handshake },
   { href: '/app/intelligence', label: 'Intelligence', icon: BarChart3 },
+  { href: '/app/automations', label: 'Automations', icon: Zap },
   { href: '/app/platform', label: 'Platform', icon: Settings2 },
 ];
 
@@ -32,6 +34,7 @@ const ACTIONS = [
   { label: 'Promote an event', href: '/app/events', icon: Megaphone, keywords: 'social posts campaign' },
   { label: 'Export club data', href: '/app/platform', icon: Download, keywords: 'export gdpr backup csv json' },
   { label: 'Invite staff', href: '/app/platform', icon: UserPlus, keywords: 'staff coach organizer roles' },
+  { label: 'New automation', href: '/app/automations', icon: Zap, keywords: 'automation workflow if this then that trigger' },
 ];
 
 interface SearchHit {
@@ -210,7 +213,50 @@ const ACTION_LABELS: Record<string, string> = {
   'club.deactivation_scheduled': 'Deactivation scheduled',
   'club.deactivation_cancelled': 'Deactivation cancelled',
   'club.data_exported': 'Data export generated',
+  'member.bulk_updated': 'Bulk member update',
+  'member.bulk_messaged': 'Bulk message sent',
+  'staff.notified': 'Staff notified',
+  'journey.enrolled': 'Member enrolled in journey',
+  'challenge.updated': 'Leaderboard updated',
+  'automation.ran': 'Automation ran',
+  'automation.created': 'Automation created',
+  'automation.enabled': 'Automation enabled',
+  'automation.disabled': 'Automation disabled',
 };
+
+function OfflineIndicator() {
+  const router = useRouter();
+  const toast = useToast();
+  const [offline, setOffline] = useState(false);
+
+  useEffect(() => {
+    setOffline(!navigator.onLine);
+    const goOffline = () => setOffline(true);
+    const goOnline = () => {
+      setOffline(false);
+      void import('@/lib/offline').then(async ({ flushOfflineQueue }) => {
+        const { sent } = await flushOfflineQueue();
+        if (sent > 0) {
+          toast({ message: `Back online — ${sent} queued change${sent === 1 ? '' : 's'} synced.`, tone: 'success' });
+          router.refresh();
+        }
+      });
+    };
+    window.addEventListener('offline', goOffline);
+    window.addEventListener('online', goOnline);
+    return () => {
+      window.removeEventListener('offline', goOffline);
+      window.removeEventListener('online', goOnline);
+    };
+  }, [router, toast]);
+
+  if (!offline) return null;
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-warn/30 bg-warn/10 px-3 py-1 text-[11.5px] font-semibold text-warn">
+      <span className="h-1.5 w-1.5 rounded-full bg-warn" /> Offline — changes queue &amp; sync
+    </span>
+  );
+}
 
 function NotificationsBell() {
   const [open, setOpen] = useState(false);
@@ -361,6 +407,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             <span className="hidden rounded-full border border-volt/30 bg-volt/10 px-3 py-1 text-[11.5px] font-semibold text-volt sm:block">
               WACM 41 · +8% w/w
             </span>
+            <OfflineIndicator />
             <NotificationsBell />
             <span className="grid h-8 w-8 place-items-center rounded-full bg-volt font-display text-[12px] font-bold text-ink">
               MO
