@@ -1,5 +1,10 @@
 import Shell from '@/components/shell';
+import { ToastProvider } from '@/components/toast';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  return <Shell>{children}</Shell>;
+  return (
+    <ToastProvider>
+      <Shell>{children}</Shell>
+    </ToastProvider>
+  );
 }

@@ -6,6 +6,7 @@
 // component re-reads the live store — no separate internal API surface.
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent, type ReactNode } from 'react';
+import { useToast, type ToastAction } from './toast';
 
 const AUTH_HEADERS = { 'content-type': 'application/json', authorization: 'Bearer ros_demo' };
 
@@ -43,6 +44,7 @@ async function postJson(endpoint: string, method: string, body?: unknown): Promi
 /** A button that opens a small modal form, POSTs/PATCHes it, then refreshes the page. */
 export function QuickActionButton({
   label, className, title, description, endpoint, method = 'POST', fields, submitLabel = 'Save', extraBody,
+  successMessage, successActions,
 }: {
   label: ReactNode;
   className: string;
@@ -54,8 +56,12 @@ export function QuickActionButton({
   submitLabel?: string;
   /** Fixed fields merged into every submission, alongside the form fields. */
   extraBody?: Record<string, unknown>;
+  /** Toast text on success; supports {field} placeholders from the form. */
+  successMessage?: string;
+  successActions?: ToastAction[];
 }) {
   const router = useRouter();
+  const toast = useToast();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -71,13 +77,19 @@ export function QuickActionButton({
       if (raw === null || raw === '') continue;
       body[f.name] = f.type === 'number' ? Number(raw) : String(raw);
     }
-    const result = await postJson(endpoint, method, body);
+    // Optimistic: close immediately, sync in the background, toast the outcome.
+    setOpen(false);
     setSubmitting(false);
+    const message = (successMessage ?? `${title} — done`).replace(
+      /\{(\w+)\}/g,
+      (_, k: string) => String(body[k] ?? ''),
+    );
+    const result = await postJson(endpoint, method, body);
     if (!result.ok) {
-      setError(result.message ?? 'Something went wrong.');
+      toast({ message: result.message ?? 'Something went wrong.', tone: 'error' });
       return;
     }
-    setOpen(false);
+    toast({ message, undoable: true, actions: successActions });
     router.refresh();
   }
 
@@ -171,7 +183,7 @@ export function QuickActionButton({
 
 /** A single-click action, optionally confirm-gated, that hits the API and refreshes. */
 export function InstantActionButton({
-  label, busyLabel = '…', className, endpoint, method = 'POST', body, confirmMessage,
+  label, busyLabel = '…', className, endpoint, method = 'POST', body, confirmMessage, successMessage,
 }: {
   label: ReactNode;
   busyLabel?: ReactNode;
@@ -180,15 +192,22 @@ export function InstantActionButton({
   method?: 'POST' | 'PATCH';
   body?: Record<string, unknown>;
   confirmMessage?: string;
+  successMessage?: string;
 }) {
   const router = useRouter();
+  const toast = useToast();
   const [busy, setBusy] = useState(false);
 
   async function handleClick(): Promise<void> {
     if (confirmMessage && !window.confirm(confirmMessage)) return;
     setBusy(true);
-    await postJson(endpoint, method, body);
+    const result = await postJson(endpoint, method, body);
     setBusy(false);
+    if (!result.ok) {
+      toast({ message: result.message ?? 'Something went wrong.', tone: 'error' });
+      return;
+    }
+    if (successMessage) toast({ message: successMessage, undoable: true });
     router.refresh();
   }
 

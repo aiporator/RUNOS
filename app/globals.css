@@ -125,6 +125,23 @@ body {
   will-change: transform;
 }
 
+/* Skeleton shimmer for loading states */
+.mk-shimmer {
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.04) 40%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.04) 60%
+  );
+  background-size: 200% 100%;
+  animation: mk-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes mk-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
 .mk-marquee {
   display: flex;
   width: max-content;

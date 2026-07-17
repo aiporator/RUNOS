@@ -48,6 +48,8 @@ export default function CommunityPage() {
               { name: 'city', label: 'Chapter', type: 'select', options: club().chapters, defaultValue: club().chapters[0] },
             ]}
             submitLabel="Invite"
+            successMessage="{name} invited — welcome journey started"
+            successActions={[{ label: 'Open directory', href: '/app/community' }]}
           />
         }
       />

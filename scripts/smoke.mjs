@@ -163,6 +163,30 @@ check('GET /workshops/nope → 404', (await page('/workshops/nope')) === 404);
   check('pottery workshop page 200 (with live event)', (await page('/workshops/pottery')) === 200);
 }
 
+// ---------- V4: undo engine, history, universal search ----------
+{
+  const created = await post('/api/v1/members', { name: 'Undo Smoke', email: 'undo.smoke@test.dev' });
+  check('undo-test member created', created.status === 201 && created.body?.data?.name === 'Undo Smoke');
+
+  const history = await get('/api/v1/history', AUTH);
+  check('history lists the mutation', history.status === 200 && history.body?.data?.[0]?.label === 'Member added');
+
+  const undone = await post('/api/v1/undo', {});
+  check('undo reverts last mutation', undone.status === 200 && undone.body?.data?.undone === 'Member added');
+
+  const after = await get('/api/v1/members?q=undo.smoke', AUTH);
+  check('undone member is gone', after.status === 200 && after.body?.data?.length === 0);
+
+  const search = await get('/api/v1/search?q=maya', AUTH);
+  check('universal search finds member', search.status === 200 && search.body?.data?.some((h) => h.type === 'member' && h.title.includes('Maya')));
+
+  const searchNoAuth = await get('/api/v1/search?q=maya');
+  check('search requires auth', searchNoAuth.status === 401);
+
+  const shortQ = await get('/api/v1/search?q=a', AUTH);
+  check('search rejects short query', shortQ.status === 400);
+}
+
 console.log(`\nSmoke: ${passed} passed, ${failed} failed`);
 if (failures.length) {
   console.log(failures.join('\n'));

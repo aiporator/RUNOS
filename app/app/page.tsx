@@ -3,10 +3,86 @@ import {
   activityFeed, atRiskMembers, club, failedPayments, getMember, mrr,
   newMembers, revenueThisMonth, totalPerkRedemptions, upcomingEvents, weeklyMetrics,
 } from '@/lib/data';
+import { getStore } from '@/lib/store';
 import { formatDateTime, money, pct, relativeDays } from '@/lib/utils';
 import { Avatar, Badge, Card, CardTitle, PageHeader, ProgressBar, Sparkline, Stat } from '@/components/ui';
 
 export const dynamic = 'force-dynamic';
+
+/** Contextual attention banners — the dashboard reshapes itself around what needs action now. */
+function SmartBanners() {
+  const failed = failedPayments();
+  const risky = atRiskMembers();
+  const next = upcomingEvents().find((e) => e.status === 'published');
+  const banners: { tone: 'warn' | 'info' | 'danger'; text: string; href: string; cta: string }[] = [];
+
+  if (failed.length > 0) {
+    banners.push({
+      tone: 'danger',
+      text: `${failed.length} failed payment${failed.length === 1 ? '' : 's'} in dunning — ${money(failed.reduce((s, p) => s + p.amount, 0))} at risk.`,
+      href: '/app/money',
+      cta: 'Review dunning',
+    });
+  }
+  if (risky.length >= 3) {
+    banners.push({
+      tone: 'warn',
+      text: `${risky.length} members need attention — attendance drifting for 3+ weeks.`,
+      href: '/app/community',
+      cta: 'See who',
+    });
+  }
+  if (next) {
+    banners.push({
+      tone: 'info',
+      text: `${next.title} is ${relativeDays(next.date)} — ${next.registered} registered${next.waitlist > 0 ? `, ${next.waitlist} waitlisted` : ''}.`,
+      href: `/app/events/${next.id}`,
+      cta: 'Open event',
+    });
+  }
+  if (banners.length === 0) return null;
+
+  const toneCls = {
+    danger: 'border-danger/30 bg-danger/10 text-danger',
+    warn: 'border-warn/30 bg-warn/10 text-warn',
+    info: 'border-volt/25 bg-volt/8 text-volt',
+  };
+  return (
+    <div className="mb-6 space-y-2 fade-up">
+      {banners.map((b) => (
+        <Link
+          key={b.text}
+          href={b.href}
+          className={`flex items-center justify-between gap-4 rounded-xl border px-4 py-3 transition hover:-translate-y-0.5 ${toneCls[b.tone]}`}
+        >
+          <span className="text-[13.5px] font-medium text-paper/90">
+            <span className="mr-2">{b.tone === 'danger' ? '⚠' : b.tone === 'warn' ? '◉' : '●'}</span>
+            {b.text}
+          </span>
+          <span className="flex-none font-display text-[12.5px] font-semibold">{b.cta} →</span>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+const AUDIT_LABELS: Record<string, string> = {
+  'member.created': 'New member joined',
+  'member.note_added': 'Note logged',
+  'member.messaged': 'Message sent',
+  'event.created': 'Event created',
+  'event.updated': 'Event updated',
+  'payment.succeeded': 'Payment collected',
+  'sponsor.created': 'Sponsor added',
+  'sponsor.stage_changed': 'Sponsor moved stage',
+  'challenge.created': 'Challenge launched',
+  'journey.created': 'Journey created',
+  'staff.invited': 'Staff invited',
+  'integration.connected': 'Integration connected',
+  'integration.disconnected': 'Integration disconnected',
+  'checkin.recorded': 'Check-in recorded',
+  'registration.created': 'New registration',
+};
 
 export default function DashboardPage() {
   const events = upcomingEvents().filter((e) => e.status === 'published').slice(0, 3);
@@ -14,6 +90,7 @@ export default function DashboardPage() {
   const wacmSeries = weeklyMetrics.map((w) => w.wacm);
   const now = weeklyMetrics[weeklyMetrics.length - 1];
   const prev = weeklyMetrics[weeklyMetrics.length - 2];
+  const liveAudit = getStore().listAudit().slice(0, 5);
 
   return (
     <div>
@@ -27,6 +104,24 @@ export default function DashboardPage() {
           </Link>
         }
       />
+
+      <SmartBanners />
+
+      {liveAudit.length > 0 ? (
+        <div className="mb-6 flex flex-wrap items-center gap-2 fade-up">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-2">Just now</span>
+          {liveAudit.map((a) => (
+            <span
+              key={a.id}
+              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-bg-2 px-3 py-1 text-[11.5px] text-muted"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-volt" />
+              {AUDIT_LABELS[a.action] ?? a.action}
+              <span className="font-mono text-[10px] text-muted-2">{a.entity}</span>
+            </span>
+          ))}
+        </div>
+      ) : null}
 
       <div className="grid gap-4 fade-up-1 sm:grid-cols-2 xl:grid-cols-4">
         <Stat label="Weekly Active Community Members" value={String(now.wacm)} delta={`+${now.wacm - prev.wacm} w/w`} sub="North-star · attended, logged, posted, redeemed" />

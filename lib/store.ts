@@ -68,6 +68,12 @@ export interface AuditEntry {
   at: string; // ISO timestamp
 }
 
+export interface HistoryEntry {
+  seq: number;
+  label: string; // human label of the mutation this snapshot precedes
+  at: string; // ISO timestamp
+}
+
 export interface PerkRedemption {
   id: string;
   perkId: string;
@@ -277,6 +283,9 @@ export interface RunosStore {
   metrics(): Metrics;
   listAudit(): AuditEntry[];
   recordAudit(action: string, entity: string): AuditEntry;
+  // undo / time travel — snapshots taken automatically before every mutation
+  listHistory(): HistoryEntry[];
+  undo(): HistoryEntry | undefined;
 }
 
 function deepCopy<T>(value: T): T {
@@ -322,6 +331,45 @@ function createStore(): RunosStore {
     return `${prefix}_${String(n).padStart(3, '0')}`;
   }
 
+  // Undo / time travel: a snapshot of the whole state is pushed automatically
+  // before every mutating method runs (see the wrapping loop below). Undo pops
+  // the latest snapshot and restores it wholesale — trivially correct because
+  // the store is one in-memory object; the Postgres swap replaces this with
+  // an event-sourced log.
+  const MAX_SNAPSHOTS = 25;
+  const snapshots: { label: string; at: string; state: StoreState }[] = [];
+  let historySeq = 0;
+
+  function pushSnapshot(label: string): void {
+    historySeq += 1;
+    snapshots.push({
+      label,
+      at: new Date(TODAY.getTime() + (state.auditSeq + historySeq) * 1000).toISOString(),
+      state: deepCopy(state),
+    });
+    if (snapshots.length > MAX_SNAPSHOTS) snapshots.shift();
+  }
+
+  function restoreSnapshot(snap: StoreState): void {
+    state.members = snap.members;
+    state.events = snap.events;
+    state.registrations = snap.registrations;
+    state.payments = snap.payments;
+    state.sponsors = snap.sponsors;
+    state.perks = snap.perks;
+    state.challenges = snap.challenges;
+    state.journeys = snap.journeys;
+    state.weeklyMetrics = snap.weeklyMetrics;
+    state.redemptions = snap.redemptions;
+    state.auditLog = snap.auditLog;
+    state.club = snap.club;
+    state.staff = snap.staff;
+    state.integrations = snap.integrations;
+    state.memberNotes = snap.memberNotes;
+    state.counters = snap.counters;
+    state.auditSeq = snap.auditSeq;
+  }
+
   // Deterministic audit timestamps: fixed base date (seed TODAY) plus an
   // incrementing offset — no Date.now() at module scope.
   function recordAudit(action: string, entity: string): AuditEntry {
@@ -336,7 +384,7 @@ function createStore(): RunosStore {
     return entry;
   }
 
-  return {
+  const store: RunosStore = {
     // -- members ------------------------------------------------------------
     listMembers(filter?: MemberFilter): Member[] {
       let out = state.members;
@@ -808,7 +856,59 @@ function createStore(): RunosStore {
     },
 
     recordAudit,
+
+    listHistory(): HistoryEntry[] {
+      return snapshots
+        .map((s, i) => ({ seq: i + 1, label: s.label, at: s.at }))
+        .reverse();
+    },
+
+    undo(): HistoryEntry | undefined {
+      const snap = snapshots.pop();
+      if (!snap) return undefined;
+      restoreSnapshot(snap.state);
+      return { seq: snapshots.length + 1, label: snap.label, at: snap.at };
+    },
   };
+
+  // Wrap every mutating method: snapshot before it runs, then discard the
+  // snapshot if the call turned out to be a no-op (no audit entry recorded —
+  // every successful mutation records one, so unchanged auditSeq ⇒ unchanged
+  // state). Reads and the undo machinery itself stay unwrapped.
+  const MUTATION_LABELS: Partial<Record<keyof RunosStore, string>> = {
+    createMember: 'Member added',
+    updateMember: 'Member updated',
+    createEvent: 'Event created',
+    updateEvent: 'Event updated',
+    createRegistration: 'Registration added',
+    checkIn: 'Check-in recorded',
+    createPayment: 'Payment recorded',
+    updateSponsorStage: 'Sponsor stage changed',
+    redeemPerk: 'Perk redeemed',
+    createChallenge: 'Challenge launched',
+    createJourney: 'Journey created',
+    createSponsor: 'Sponsor added',
+    addMemberNote: 'Note logged',
+    addChapter: 'Chapter added',
+    rotateApiKey: 'API key rotated',
+    transferOwnership: 'Ownership transferred',
+    scheduleDeactivation: 'Club deactivation scheduled',
+    cancelDeactivation: 'Club deactivation cancelled',
+    inviteStaff: 'Staff invited',
+    toggleIntegration: 'Integration toggled',
+  };
+  for (const [name, label] of Object.entries(MUTATION_LABELS) as [keyof RunosStore, string][]) {
+    const original = store[name] as (...args: unknown[]) => unknown;
+    (store as unknown as Record<string, unknown>)[name] = (...args: unknown[]) => {
+      const seqBefore = state.auditSeq;
+      pushSnapshot(label);
+      const result = original(...args);
+      if (state.auditSeq === seqBefore) snapshots.pop();
+      return result;
+    };
+  }
+
+  return store;
 }
 
 // ---------------------------------------------------------------------------
